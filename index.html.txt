@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TAMRO – Food Ordering</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --primary:#E84545;--primary-dark:#c0392b;--bg:#FFF8F5;--card:#fff;
+  --text:#1a1a2e;--muted:#888;--border:#f0e6e0;--accent:#FF6B35;
+  --green:#27ae60;--shadow:0 4px 24px rgba(232,69,69,0.08);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* PHONE BAR */
+.phone-bar{background:var(--primary);color:#fff;text-align:center;padding:7px 1rem;font-size:.82rem;font-weight:500;}
+.phone-bar a{color:#fff;text-decoration:none;font-weight:700;}
+
+/* NAV */
+.topbar{
+  background:#fff;
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 16px rgba(232,69,69,0.10);
+}
+.topbar-logo-row{
+  display:flex;align-items:center;justify-content:center;
+  padding:10px 1rem 6px;
+  border-bottom:1px solid var(--border);
+  min-height:72px;
+  background:linear-gradient(135deg,#fff 60%,#fff3f0 100%);
+}
+.logo{
+  font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:900;
+  color:var(--primary);letter-spacing:-1px;cursor:pointer;user-select:none;
+  position:relative;display:flex;align-items:center;justify-content:center;
+}
+.logo span{color:var(--accent);}
+.logo-admin-hint{font-size:.55rem;font-weight:600;color:var(--accent);position:absolute;bottom:-8px;left:0;right:0;text-align:center;letter-spacing:.5px;opacity:.7;}
+.topbar-nav-row{
+  display:flex;align-items:center;justify-content:center;
+  padding:7px 1rem;gap:8px;
+  overflow-x:auto;scrollbar-width:none;
+}
+.topbar-nav-row::-webkit-scrollbar{display:none;}
+.nav-btns{display:contents;}
+.nav-btn{padding:7px 18px;border-radius:24px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;transition:all .2s;color:var(--text);white-space:nowrap;flex-shrink:0;}
+.nav-btn.active,.nav-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+
+/* VIEWS */
+.view{display:none;}.view.active{display:block;}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#E84545 0%,#FF6B35 100%);color:#fff;padding:1.2rem 1.2rem 1.8rem;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-40px;right:-60px;width:200px;height:200px;background:rgba(255,255,255,.07);border-radius:50%;}
+.hero h1{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:900;margin-bottom:.2rem;}
+.hero p{font-size:.88rem;opacity:.9;margin-bottom:1rem;}
+.search-bar{display:flex;background:#fff;border-radius:50px;overflow:hidden;max-width:460px;margin:0 auto;box-shadow:0 6px 24px rgba(0,0,0,.15);}
+.search-bar input{flex:1;border:none;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;color:var(--text);}
+.search-bar button{background:var(--primary);color:#fff;border:none;padding:0 18px;cursor:pointer;font-weight:600;font-size:.88rem;}
+
+/* DISCOUNT BANNER */
+.discount-banner{background:linear-gradient(90deg,#FF6B35,#E84545);color:#fff;text-align:center;padding:10px 1rem;font-size:.85rem;font-weight:600;}
+.discount-banner span{background:rgba(255,255,255,.2);border-radius:20px;padding:2px 10px;margin-left:6px;}
+
+/* CATS */
+.cats{display:flex;gap:8px;overflow-x:auto;padding:1rem 1.2rem;scrollbar-width:none;}
+.cats::-webkit-scrollbar{display:none;}
+.cat-chip{white-space:nowrap;padding:7px 16px;border-radius:50px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-size:.82rem;font-weight:500;transition:all .2s;flex-shrink:0;}
+.cat-chip.active,.cat-chip:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+
+/* FOOD GRID */
+.section-title{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;padding:0 1.2rem .8rem;}
+.food-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;padding:0 1.2rem 6rem;}
+.food-card{background:var(--card);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s;}
+.food-card:hover{transform:translateY(-4px);box-shadow:0 12px 36px rgba(232,69,69,.14);}
+.food-img{width:100%;height:160px;background:linear-gradient(135deg,#ffecd2,#fcb69f);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.food-img img{width:100%;height:100%;object-fit:cover;}
+.food-img .ep{font-size:3.8rem;}
+.badge-v{position:absolute;top:8px;left:8px;background:#fff;border:2px solid var(--green);border-radius:4px;width:18px;height:18px;display:flex;align-items:center;justify-content:center;}
+.badge-v::after{content:'';width:8px;height:8px;border-radius:50%;background:var(--green);display:block;}
+.badge-nv{position:absolute;top:8px;left:8px;background:#fff;border:2px solid var(--primary);border-radius:4px;width:18px;height:18px;display:flex;align-items:center;justify-content:center;}
+.badge-nv::after{content:'';width:8px;height:8px;border-radius:50%;background:var(--primary);display:block;}
+.food-info{padding:.9rem;}
+.food-info h3{font-size:.95rem;font-weight:600;margin-bottom:3px;}
+.food-info p{font-size:.78rem;color:var(--muted);margin-bottom:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.food-footer{display:flex;align-items:center;justify-content:space-between;}
+.price{font-size:1.05rem;font-weight:700;color:var(--primary);}
+.add-btn{background:var(--primary);color:#fff;border:none;border-radius:50px;padding:6px 14px;cursor:pointer;font-weight:600;font-size:.82rem;transition:all .2s;}
+.add-btn:hover{background:var(--primary-dark);}
+.add-btn.added{background:var(--green);}
+
+/* CART FAB */
+.cart-fab{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--primary);color:#fff;border:none;border-radius:50px;padding:13px 20px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.95rem;box-shadow:0 8px 32px rgba(232,69,69,.4);z-index:200;transition:all .2s;display:none;align-items:center;gap:8px;}
+.cart-fab:hover{background:var(--primary-dark);transform:scale(1.04);}
+.cart-count{background:#fff;color:var(--primary);border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;}
+
+/* CART PANEL */
+.cart-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;}
+.cart-panel{position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:22px 22px 0 0;padding:1.4rem;z-index:400;max-height:85vh;overflow-y:auto;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);}
+.cart-panel.open{transform:translateY(0);}
+.cart-overlay.open{display:block;}
+.cart-handle{width:38px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 1rem;}
+.cart-title{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;margin-bottom:.9rem;}
+.cart-item{display:flex;align-items:center;gap:.9rem;padding:.7rem 0;border-bottom:1px solid var(--border);}
+.ci-emoji{font-size:1.8rem;width:44px;text-align:center;}
+.ci-info{flex:1;}
+.ci-info h4{font-size:.9rem;font-weight:600;}
+.ci-info p{font-size:.8rem;color:var(--muted);}
+.cart-qty{display:flex;align-items:center;gap:7px;}
+.qty-btn{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-size:.95rem;font-weight:700;}
+.qty-num{font-weight:600;min-width:18px;text-align:center;}
+
+/* DISCOUNT BOX IN CART */
+.discount-box{background:linear-gradient(90deg,#fff3f0,#fff8f0);border:1.5px solid #FFD0B0;border-radius:12px;padding:.9rem 1rem;margin:.8rem 0;}
+.discount-box .disc-title{font-size:.78rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.4px;margin-bottom:.4rem;}
+.discount-box .disc-row{display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:.2rem;}
+.discount-box .disc-save{color:var(--green);font-weight:700;}
+.discount-box .disc-note{font-size:.75rem;color:var(--muted);margin-top:.4rem;}
+
+.cart-total-section{margin:.5rem 0;}
+.cart-total-row{display:flex;justify-content:space-between;align-items:center;padding:.3rem 0;font-size:.9rem;}
+.cart-total-row.final{font-weight:800;font-size:1.1rem;border-top:2px solid var(--border);padding-top:.6rem;margin-top:.3rem;}
+.cart-total-row.saving{color:var(--green);font-weight:600;}
+
+.order-section h3{font-size:.75rem;font-weight:600;margin-bottom:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.order-btns{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:.8rem;}
+.order-btn{padding:12px;border-radius:12px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.87rem;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .2s;}
+.order-btn svg{width:19px;height:19px;}
+.btn-wa{background:#25D366;color:#fff;}.btn-wa:hover{background:#128C7E;}
+.btn-fb{background:#1877F2;color:#fff;}.btn-fb:hover{background:#0d5ab9;}
+.btn-sms{background:#5856D6;color:#fff;}.btn-sms:hover{background:#3c3aba;}
+.btn-call{background:var(--green);color:#fff;}.btn-call:hover{background:#1e8449;}
+
+/* ADMIN */
+.admin-header{background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;padding:1.8rem 1.5rem;}
+.admin-header h2{font-family:'Playfair Display',serif;font-size:1.5rem;}
+.admin-header p{opacity:.6;font-size:.82rem;margin-top:3px;}
+.admin-section{padding:1.4rem;}
+.admin-section h3{font-size:1rem;font-weight:700;margin-bottom:.9rem;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group label{font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
+.form-group input,.form-group select{padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.87rem;outline:none;transition:border .2s;background:#fff;color:var(--text);}
+.form-group input:focus,.form-group select:focus{border-color:var(--primary);}
+.btn-primary{background:var(--primary);color:#fff;border:none;border-radius:11px;padding:11px 22px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.9rem;transition:all .2s;width:100%;margin-top:4px;}
+.btn-primary:hover{background:var(--primary-dark);}
+.btn-secondary{background:#888!important;}
+.admin-food-list{display:flex;flex-direction:column;gap:9px;}
+.admin-item{background:#fff;border-radius:13px;padding:.9rem;display:flex;align-items:center;gap:.9rem;box-shadow:var(--shadow);}
+.ai-emoji{font-size:1.8rem;width:44px;text-align:center;}
+.ai-info{flex:1;}
+.ai-info h4{font-weight:600;font-size:.9rem;}
+.ai-info p{font-size:.77rem;color:var(--muted);}
+.ai-actions{display:flex;gap:5px;}
+.icon-btn{width:32px;height:32px;border-radius:7px;border:1.5px solid var(--border);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.95rem;transition:all .2s;}
+.icon-btn.edit:hover{background:#FFF3E0;border-color:#FF6B35;}
+.icon-btn.del:hover{background:#ffebee;border-color:var(--primary);}
+.status-pill{font-size:.69rem;padding:2px 8px;border-radius:50px;font-weight:600;background:#e8f5e9;color:#2e7d32;}
+
+/* DISCOUNT SETTINGS IN ADMIN */
+.disc-admin-box{background:#fff3f0;border:1.5px solid #FFD0B0;border-radius:13px;padding:1rem;margin-bottom:1rem;}
+.disc-admin-box h4{font-weight:700;font-size:.9rem;margin-bottom:.6rem;color:var(--accent);}
+.disc-admin-box p{font-size:.8rem;color:var(--muted);margin-top:.5rem;}
+
+/* QR */
+.qr-view{padding:2rem 1.4rem;text-align:center;}
+.qr-view h2{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:800;margin-bottom:.4rem;}
+.qr-view p{color:var(--muted);margin-bottom:1.8rem;}
+.qr-box{background:#fff;border-radius:20px;display:inline-block;padding:1.8rem;box-shadow:0 8px 40px rgba(232,69,69,.12);margin-bottom:1.4rem;}
+.qr-tabs{display:flex;gap:8px;justify-content:center;margin-bottom:1.5rem;}
+.qr-tab{padding:8px 20px;border-radius:50px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-size:.85rem;font-weight:600;transition:all .2s;}
+.qr-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+.qr-instructions{background:#fff3f0;border-radius:13px;padding:1.1rem;text-align:left;max-width:400px;margin:0 auto 1.5rem;}
+.qr-instructions h4{font-weight:700;margin-bottom:.7rem;color:var(--primary);}
+.qr-instructions ol{padding-left:1.1rem;}
+.qr-instructions li{margin-bottom:.45rem;font-size:.87rem;}
+.share-url-box{background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:.8rem 1rem;max-width:400px;margin:0 auto;word-break:break-all;font-size:.8rem;color:var(--primary);font-weight:600;}
+
+/* ORDER SPLASH */
+#orderSplash{display:none;position:fixed;inset:0;background:linear-gradient(135deg,#E84545,#FF6B35);z-index:1000;align-items:center;justify-content:center;flex-direction:column;text-align:center;}
+#orderSplash.open{display:flex;}
+.sp-logo{font-family:'Playfair Display',serif;font-size:3.8rem;font-weight:900;color:#fff;letter-spacing:-2px;}
+.sp-sub{font-size:1rem;color:rgba(255,255,255,.85);margin:.4rem 0 1.8rem;}
+.sp-spin{font-size:2.5rem;animation:spin 1s linear infinite;}
+.sp-msg{margin-top:1rem;font-size:.9rem;color:rgba(255,255,255,.75);}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+/* ADMIN PIN MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:800;align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal-box{background:#fff;border-radius:20px;padding:2rem;width:90%;max-width:340px;text-align:center;}
+.modal-box h3{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:800;margin-bottom:.4rem;}
+.modal-box p{font-size:.85rem;color:var(--muted);margin-bottom:1.2rem;}
+.pin-input{width:100%;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:1.2rem;text-align:center;letter-spacing:8px;font-weight:700;outline:none;font-family:'DM Sans',sans-serif;}
+.pin-input:focus{border-color:var(--primary);}
+.pin-error{color:var(--primary);font-size:.82rem;margin-top:.5rem;min-height:1.2rem;}
+.modal-btns{display:flex;gap:8px;margin-top:1rem;}
+.modal-btn{flex:1;padding:11px;border-radius:10px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.9rem;}
+.modal-btn.confirm{background:var(--primary);color:#fff;}
+.modal-btn.cancel{background:#f0f0f0;color:var(--text);}
+
+.notif{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(120px);background:#1a1a2e;color:#fff;padding:11px 22px;border-radius:50px;font-weight:600;font-size:.87rem;z-index:700;transition:transform .3s;white-space:nowrap;}
+.notif.show{transform:translateX(-50%) translateY(0);}
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--muted);}
+.empty span{font-size:2.8rem;display:block;margin-bottom:.8rem;}
+
+@media(max-width:480px){
+  .hero h1{font-size:2rem;}
+  .food-grid{grid-template-columns:1fr 1fr;}
+  .order-btns{grid-template-columns:1fr;}
+  .form-row{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- PHONE BAR -->
+<div class="phone-bar">
+  📞 Any query? Call / WhatsApp: <a href="tel:+9779822104400">+977 9822104400</a>
+</div>
+
+<!-- NAV -->
+<nav class="topbar">
+  <div class="topbar-logo-row">
+    <div class="logo" id="logoBtn">
+      <img id="logoImg" src="" alt="" style="display:none;height:60px;width:auto;max-width:220px;object-fit:contain;border-radius:12px;box-shadow:0 4px 16px rgba(232,69,69,0.20);">
+      <span id="logoText">TAM<span>RO</span></span>
+      <div class="logo-admin-hint" id="adminHint" style="display:none">hold for admin</div>
+    </div>
+  </div>
+  <div class="topbar-nav-row">
+    <div class="nav-btns" id="navBtns">
+      <button class="nav-btn active" id="btnCustomer" onclick="switchView('customer')">🍽 Menu</button>
+      <button class="nav-btn" id="btnQr" onclick="switchView('qr')">📲 Share</button>
+      <button class="nav-btn" id="btnAdmin" style="display:none" onclick="switchView('admin')">⚙️ Admin</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ══ CUSTOMER VIEW ══ -->
+<div id="view-customer" class="view active">
+  <div class="hero">
+    <h1>Order Your Favourite Food</h1>
+    <p>Fresh · Fast · Delicious — delivered to you</p>
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search momos, thakali, pizza…" oninput="filterFood()">
+      <button onclick="filterFood()">Search</button>
+    </div>
+  </div>
+  <div class="discount-banner">
+    🏷️ Discount starting from 1.5%! Order more items, save more <span id="discountLabel">— 1.5% off per item</span>
+  </div>
+  <div class="cats" id="catBar"></div>
+  <div class="section-title" id="sectionTitle">All Items</div>
+  <div class="food-grid" id="foodGrid"></div>
+  <button class="cart-fab" id="cartFab" onclick="openCart()">
+    🛒 <span id="cartFabLabel">View Cart</span>
+    <span class="cart-count" id="cartCount">0</span>
+  </button>
+</div>
+
+<!-- ══ ADMIN VIEW ══ -->
+<div id="view-admin" class="view">
+  <div class="admin-header">
+    <h2>⚙️ Admin Panel</h2>
+    <p>Manage your TAMRO menu — changes sync instantly to customers</p>
+  </div>
+
+  <div class="admin-section">
+    <!-- LOGO UPLOAD -->
+    <div class="disc-admin-box" style="margin-bottom:1rem;">
+      <h4>🖼️ TAMRO Logo</h4>
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:.8rem;">
+        <div id="logoPreviewAdmin" style="width:80px;height:80px;border-radius:12px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;background:#fff8f5;">
+          <span style="font-size:1.8rem;color:var(--muted);">📷</span>
+        </div>
+        <div style="flex:1;">
+          <label style="display:block;background:var(--primary);color:#fff;border-radius:10px;padding:10px;text-align:center;cursor:pointer;font-weight:700;font-size:.88rem;">
+            📁 Upload Logo from Phone
+            <input type="file" id="logoUpload" accept="image/*" style="display:none;" onchange="handleLogoUpload(event)">
+          </label>
+          <button class="btn-primary btn-secondary" style="margin-top:6px;padding:8px;" onclick="removeLogo()">✕ Remove Logo</button>
+        </div>
+      </div>
+    </div>
+    <!-- DISCOUNT SETTINGS -->
+    <div class="disc-admin-box">
+      <h4>🏷️ Multi-Order Discount Settings</h4>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Min items to qualify</label>
+          <input type="number" id="discMinItems" value="2" min="1">
+        </div>
+        <div class="form-group">
+          <label>Discount % per item</label>
+          <input type="number" id="discPercent" value="1.5" step="0.1" min="0" max="50">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Max total discount %</label>
+        <input type="number" id="discMax" value="15" min="0" max="100">
+      </div>
+      <button class="btn-primary" style="margin-top:8px" onclick="saveDiscountSettings()">💾 Save Discount Settings</button>
+      <p>e.g. 2 items = 3% off, 3 items = 4.5% off, up to max</p>
+    </div>
+
+    <h3 id="formTitle">➕ Add New Item</h3>
+    <input type="hidden" id="editId">
+    <div class="form-row">
+      <div class="form-group"><label>Item Name *</label><input type="text" id="adminName" placeholder="e.g. Chicken Momos"></div>
+      <div class="form-group"><label>Price (Rs.) *</label><input type="number" id="adminPrice" placeholder="200"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Category</label>
+        <select id="adminCat">
+          <option>Momos</option><option>Rice</option><option>Noodles</option>
+          <option>Snacks</option><option>Drinks</option><option>Pizza</option>
+          <option>Burger</option><option>Dessert</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Type</label>
+        <select id="adminVeg"><option value="veg">🟢 Veg</option><option value="nonveg">🔴 Non-Veg</option></select>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:10px"><label>Description</label><input type="text" id="adminDesc" placeholder="e.g. Steamed dumplings with spicy sauce"></div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label>Food Photo</label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div id="foodPhotoPreview" style="width:60px;height:60px;border-radius:10px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;background:#fff8f5;flex-shrink:0;">
+          <span style="font-size:1.5rem;">📷</span>
+        </div>
+        <label style="flex:1;display:block;background:#f8f8f8;border:1.5px solid var(--border);color:var(--text);border-radius:10px;padding:10px;text-align:center;cursor:pointer;font-weight:600;font-size:.88rem;">
+          📁 Upload from Phone
+          <input type="file" id="adminPhotoFile" accept="image/*" style="display:none;" onchange="handleFoodPhotoUpload(event)">
+        </label>
+      </div>
+      <input type="hidden" id="adminPhoto">
+    </div>
+    <div class="form-group" style="margin-bottom:14px"><label>Emoji (if no photo)</label><input type="text" id="adminEmoji" placeholder="🥟" maxlength="4"></div>
+    <button class="btn-primary" onclick="saveItem()">💾 Save Item</button>
+    <button class="btn-primary btn-secondary" id="cancelEditBtn" style="display:none;margin-top:8px" onclick="cancelEdit()">✕ Cancel Edit</button>
+  </div>
+
+  <div class="admin-section" style="padding-top:0">
+    <h3>📋 Menu Items (<span id="adminCount">0</span>)</h3>
+    <div class="admin-food-list" id="adminList"></div>
+  </div>
+</div>
+
+<!-- ══ QR VIEW ══ -->
+<div id="view-qr" class="view">
+  <div class="qr-view">
+    <h2>📲 Share TAMRO</h2>
+    <p>Give customers this QR — they won't see Admin</p>
+    <div class="qr-tabs" id="qrTabs">
+      <button class="qr-tab active" onclick="showQR('customer')">Customer QR</button>
+      <button class="qr-tab" id="adminQrTab" style="display:none" onclick="showQR('admin')">My Admin QR</button>
+    </div>
+    <div class="qr-box"><div id="qrcode"></div></div>
+    <div id="qrUrlBox" class="share-url-box"></div>
+    <div class="qr-instructions" style="margin-top:1.2rem">
+      <h4>How to Install on Any Browser</h4>
+      <ol>
+        <li><strong>Chrome (Android/Desktop):</strong> Open link → ⋮ → "Add to Home screen"</li>
+        <li><strong>Safari (iPhone/iPad):</strong> Open link → Share ⬆️ → "Add to Home Screen"</li>
+        <li><strong>Firefox:</strong> Open link → ⋮ → "Add to Home screen"</li>
+        <li><strong>Samsung Internet:</strong> Open link → ⋮ → "Add page to Home screen"</li>
+        <li><strong>Edge:</strong> Open link → … → "Add to phone"</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<!-- CART PANEL -->
+<div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+<div class="cart-panel" id="cartPanel">
+  <div class="cart-handle"></div>
+  <div class="cart-title">🛒 Your Cart</div>
+  <div id="cartItems"></div>
+  <div id="discountBoxEl"></div>
+  <div class="cart-total-section" id="cartTotalSection"></div>
+  <div class="order-section" style="margin-top:.5rem">
+    <h3>📦 Place Your Order Via</h3>
+    <div class="order-btns">
+      <button class="order-btn btn-wa" onclick="orderWhatsApp()">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M11.99 2C6.469 2 2 6.471 2 12c0 1.784.465 3.478 1.35 4.963L2 22l5.233-1.317A9.949 9.949 0 0011.99 22C17.513 22 22 17.529 22 12S17.513 2 11.99 2zm.01 18c-1.649 0-3.188-.441-4.514-1.209l-.323-.193-3.105.782.815-2.994-.21-.342A7.945 7.945 0 014 12c0-4.418 3.582-8 8-8s8 3.582 8 8-3.582 8-8 8z"/></svg>
+        WhatsApp
+      </button>
+      <button class="order-btn btn-fb" onclick="orderFacebook()">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.04c-5.5 0-9.96 4.46-9.96 9.96 0 4.41 3.18 8.07 7.39 8.83V14.4H7.45v-2.43h1.98v-1.85c0-1.96 1.16-3.04 2.93-3.04.85 0 1.74.15 1.74.15v1.92h-.98c-.97 0-1.27.6-1.27 1.22v1.6h2.16l-.34 2.43h-1.82v6.43C18.78 20.07 21.96 16.41 21.96 12c0-5.5-4.46-9.96-9.96-9.96z"/></svg>
+        Messenger
+      </button>
+      <button class="order-btn btn-sms" onclick="orderSMS()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Message
+      </button>
+      <button class="order-btn btn-call" onclick="orderCall()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6.13 6.13l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        Call Now
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MESSENGER PROMPT OVERLAY -->
+<div id="messengerPrompt" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:900;align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:#fff;border-radius:20px;padding:1.5rem;width:100%;max-width:400px;max-height:80vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:800;color:#1877F2;">📨 Your Order — Type this in Messenger</div>
+      <button id="messengerCloseBtn" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#888;">×</button>
+    </div>
+    <div style="background:#f0f4ff;border-radius:12px;padding:1rem;margin-bottom:1rem;font-size:.85rem;line-height:1.6;white-space:pre-wrap;color:#1a1a2e;font-family:'DM Sans',sans-serif;" id="messengerOrderText"></div>
+    <div style="background:#fff3cd;border-radius:10px;padding:.8rem;margin-bottom:1rem;font-size:.82rem;color:#856404;">
+      ✍️ <strong>Messenger is now open!</strong> Type this order in the chat and send it to TAMRO.
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button id="messengerCopyBtn" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid #1877F2;background:#fff;color:#1877F2;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.88rem;cursor:pointer;">📋 Copy Again</button>
+      <a id="messengerOpenBtn" href="https://m.me/1129697586896241" target="_blank" style="flex:2;padding:11px;border-radius:10px;border:none;background:#1877F2;color:#fff;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.88rem;cursor:pointer;text-decoration:none;display:flex;align-items:center;justify-content:center;">Open Messenger →</a>
+    </div>
+  </div>
+</div>
+<style>#messengerPrompt.open{display:flex;}</style>
+
+<!-- ORDER SPLASH -->
+<div id="orderSplash">
+  <div class="sp-logo">TAMRO</div>
+  <div class="sp-sub">तम्रो मनपर्ने खाना 🍽</div>
+  <div class="sp-spin">⏳</div>
+  <div class="sp-msg">Preparing your order…</div>
+</div>
+
+<!-- ADMIN PIN MODAL -->
+<div class="modal-bg" id="pinModal">
+  <div class="modal-box">
+    <h3>🔐 Admin Access</h3>
+    <p>Enter your 4-digit PIN to access the Admin panel</p>
+    <input type="password" class="pin-input" id="pinInput" maxlength="4" placeholder="••••" inputmode="numeric">
+    <div class="pin-error" id="pinError"></div>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closePinModal()">Cancel</button>
+      <button class="modal-btn confirm" onclick="checkPin()">Enter</button>
+    </div>
+  </div>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+// ══ CONFIG ══════════════════════════════════════════
+const PHONE = '9779822104400';
+const FOODS_KEY = 'tamro_foods_v3';
+const DISC_KEY = 'tamro_discount_v1';
+const ADMIN_PIN = '1234'; // Change this to your own PIN
+const BASE_URL = window.location.href.split('?')[0];
+const CUSTOMER_URL = BASE_URL + "?customer=1"; // customer link hides admin
+const ADMIN_URL = BASE_URL; // plain URL = your admin app
+
+// ══ MODE DETECTION ═══════════════════════════════════
+// Plain URL = YOUR admin app (always has admin)
+// Customer QR uses ?customer=1 → hides admin button
+const IS_CUSTOMER = new URLSearchParams(window.location.search).get('customer') === '1';
+const IS_ADMIN = !IS_CUSTOMER;
+
+// ══ SHOW/HIDE ADMIN BUTTON ════════════════════════════
+if (IS_ADMIN) {
+  document.getElementById('btnAdmin').style.display = '';
+  document.getElementById('adminQrTab').style.display = '';
+}
+
+// ══ DATA ═════════════════════════════════════════════
+const DEFAULT_FOODS = [
+  {id:1,name:'Chicken Momos',price:200,cat:'Momos',veg:'nonveg',desc:'Steamed dumplings with spicy achar',emoji:'🥟',photo:''},
+  {id:2,name:'Veg Fried Rice',price:160,cat:'Rice',veg:'veg',desc:'Wok-tossed rice with fresh veggies',emoji:'🍚',photo:''},
+  {id:3,name:'Buff Chowmein',price:140,cat:'Noodles',veg:'nonveg',desc:'Stir-fried noodles Nepali style',emoji:'🍜',photo:''},
+  {id:4,name:'Spring Roll',price:120,cat:'Snacks',veg:'veg',desc:'Crispy golden rolls, 6 pcs',emoji:'🌯',photo:''},
+  {id:5,name:'Masala Chai',price:50,cat:'Drinks',veg:'veg',desc:'Spiced milk tea',emoji:'☕',photo:''},
+  {id:6,name:'Cheese Burger',price:280,cat:'Burger',veg:'nonveg',desc:'Juicy patty with melted cheese',emoji:'🍔',photo:''},
+  {id:7,name:'Thukpa',price:180,cat:'Noodles',veg:'nonveg',desc:'Hearty Tibetan noodle soup',emoji:'🍲',photo:''},
+  {id:8,name:'Gulab Jamun',price:80,cat:'Dessert',veg:'veg',desc:'Soft syrup-soaked dumplings',emoji:'🍮',photo:''},
+];
+
+function loadFoods() {
+  const s = localStorage.getItem(FOODS_KEY);
+  return s ? JSON.parse(s) : DEFAULT_FOODS;
+}
+function saveFoodsData() {
+  localStorage.setItem(FOODS_KEY, JSON.stringify(foods));
+}
+
+function loadDiscSettings() {
+  const s = localStorage.getItem(DISC_KEY);
+  return s ? JSON.parse(s) : {minItems:2, percent:1.5, maxDiscount:15};
+}
+function saveDiscSettings(obj) {
+  localStorage.setItem(DISC_KEY, JSON.stringify(obj));
+}
+
+let foods = loadFoods();
+let discSettings = loadDiscSettings();
+let cart = {};
+let activeCategory = 'All';
+let nextId = Math.max(...foods.map(f=>f.id), 0) + 1;
+let currentQrMode = 'customer';
+
+// Sync admin discount fields on load
+if (IS_ADMIN) {
+  document.getElementById('discMinItems').value = discSettings.minItems;
+  document.getElementById('discPercent').value = discSettings.percent;
+  document.getElementById('discMax').value = discSettings.maxDiscount;
+}
+
+// ══ AUTO-SYNC via localStorage events ════════════════
+// When admin saves, customers on other tabs/devices auto-update
+window.addEventListener('storage', (e) => {
+  if (e.key === FOODS_KEY && e.newValue) {
+    foods = JSON.parse(e.newValue);
+    nextId = Math.max(...foods.map(f=>f.id), 0) + 1;
+    renderCategories(); renderFoods();
+    if (IS_ADMIN) renderAdminList();
+    showNotif('✅ Menu synced!');
+  }
+  if (e.key === DISC_KEY && e.newValue) {
+    discSettings = JSON.parse(e.newValue);
+    updateDiscountBanner();
+  }
+});
+
+// ══ DISCOUNT LOGIC ═══════════════════════════════════
+function calcDiscount(subtotal, totalItems) {
+  if (totalItems < discSettings.minItems) return 0;
+  const rawPct = totalItems * discSettings.percent;
+  const pct = Math.min(rawPct, discSettings.maxDiscount);
+  return Math.round(subtotal * pct / 100);
+}
+
+function getDiscountPct(totalItems) {
+  if (totalItems < discSettings.minItems) return 0;
+  return Math.min(totalItems * discSettings.percent, discSettings.maxDiscount);
+}
+
+function updateDiscountBanner() {
+  document.getElementById('discountLabel').textContent =
+    `${discSettings.percent}% off per item (min ${discSettings.minItems} items)`;
+}
+updateDiscountBanner();
+
+function saveDiscountSettings() {
+  discSettings = {
+    minItems: parseInt(document.getElementById('discMinItems').value) || 2,
+    percent: parseFloat(document.getElementById('discPercent').value) || 1.5,
+    maxDiscount: parseFloat(document.getElementById('discMax').value) || 15,
+  };
+  saveDiscSettings(discSettings);
+  updateDiscountBanner();
+  showNotif('✅ Discount settings saved!');
+}
+
+// ══ CUSTOMER RENDER ═══════════════════════════════════
+function renderCategories() {
+  const cats = ['All', ...new Set(foods.map(f=>f.cat))];
+  document.getElementById('catBar').innerHTML = cats.map(c =>
+    `<button class="cat-chip ${c===activeCategory?'active':''}" onclick="setCategory('${c}')">${c}</button>`
+  ).join('');
+}
+
+function setCategory(cat) { activeCategory=cat; renderCategories(); renderFoods(); }
+function filterFood() { renderFoods(); }
+
+function renderFoods() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const list = foods.filter(f => {
+    const matchCat = activeCategory==='All' || f.cat===activeCategory;
+    const matchQ = !q || f.name.toLowerCase().includes(q) || f.cat.toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+  const grid = document.getElementById('foodGrid');
+  document.getElementById('sectionTitle').textContent = activeCategory==='All' ? 'All Items' : activeCategory;
+  if (!list.length) { grid.innerHTML='<div class="empty"><span>🔍</span>No items found</div>'; return; }
+  grid.innerHTML = list.map(f => {
+    const inCart = cart[f.id]>0;
+    return `<div class="food-card">
+      <div class="food-img">
+        ${f.photo?`<img src="${f.photo}" alt="${f.name}" onerror="this.style.display='none'">`:``}
+        <span class="ep" style="${f.photo?'display:none':''}">${f.emoji||'🍽'}</span>
+        <div class="${f.veg==='veg'?'badge-v':'badge-nv'}"></div>
+      </div>
+      <div class="food-info">
+        <h3>${f.name}</h3>
+        <p>${f.desc}</p>
+        <div class="food-footer">
+          <span class="price">Rs.${f.price}</span>
+          <button class="add-btn ${inCart?'added':''}" onclick="addToCart(${f.id})">
+            ${inCart?`✓ ${cart[f.id]} added`:'+ Add'}
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addToCart(id) {
+  cart[id]=(cart[id]||0)+1;
+  updateCartUI(); renderFoods(); showNotif('Added to cart!');
+}
+
+function updateCartUI() {
+  const items = Object.entries(cart).filter(([,q])=>q>0);
+  const totalItems = items.reduce((a,[,q])=>a+q, 0);
+  const subtotal = items.reduce((a,[id,q])=>{
+    const f=foods.find(x=>x.id==id); return a+(f?f.price*q:0);
+  }, 0);
+  const discount = calcDiscount(subtotal, totalItems);
+  const finalTotal = subtotal - discount;
+  const fab = document.getElementById('cartFab');
+  document.getElementById('cartCount').textContent = totalItems;
+  document.getElementById('cartFabLabel').textContent = `Cart · Rs.${finalTotal}`;
+  fab.style.display = totalItems>0 ? 'flex' : 'none';
+}
+
+function openCart() { renderCartPanel(); document.getElementById('cartOverlay').classList.add('open'); document.getElementById('cartPanel').classList.add('open'); }
+function closeCart() { document.getElementById('cartOverlay').classList.remove('open'); document.getElementById('cartPanel').classList.remove('open'); }
+
+function renderCartPanel() {
+  const items = Object.entries(cart).filter(([,q])=>q>0);
+  const el = document.getElementById('cartItems');
+  if (!items.length) {
+    el.innerHTML='<div class="empty"><span>🛒</span>Cart is empty</div>';
+    document.getElementById('discountBoxEl').innerHTML='';
+    document.getElementById('cartTotalSection').innerHTML='<div class="cart-total-row final"><span>Total</span><span>Rs. 0</span></div>';
+    return;
+  }
+  let subtotal=0;
+  let totalItems=0;
+  el.innerHTML = items.map(([id,qty])=>{
+    const f=foods.find(x=>x.id==id); if(!f) return '';
+    subtotal+=f.price*qty; totalItems+=qty;
+    return `<div class="cart-item">
+      <div class="ci-emoji">${f.emoji||'🍽'}</div>
+      <div class="ci-info"><h4>${f.name}</h4><p>Rs.${f.price} × ${qty} = <strong>Rs.${f.price*qty}</strong></p></div>
+      <div class="cart-qty">
+        <button class="qty-btn" onclick="changeQty(${id},-1)">−</button>
+        <span class="qty-num">${qty}</span>
+        <button class="qty-btn" onclick="changeQty(${id},1)">+</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  const discount = calcDiscount(subtotal, totalItems);
+  const discPct = getDiscountPct(totalItems);
+  const finalTotal = subtotal - discount;
+
+  // Discount box
+  const discBox = document.getElementById('discountBoxEl');
+  if (discount > 0) {
+    discBox.innerHTML = `<div class="discount-box">
+      <div class="disc-title">🎉 Multi-order Discount Applied!</div>
+      <div class="disc-row"><span>${totalItems} items × ${discSettings.percent}% = ${discPct.toFixed(1)}% off</span><span class="disc-save">−Rs.${discount}</span></div>
+      <div class="disc-note">You're saving Rs.${discount} on this order!</div>
+    </div>`;
+  } else if (totalItems >= 1 && totalItems < discSettings.minItems) {
+    discBox.innerHTML = `<div class="discount-box">
+      <div class="disc-title">💡 Add ${discSettings.minItems - totalItems} more item(s) to unlock discount!</div>
+      <div class="disc-note">Order ${discSettings.minItems}+ items and get ${discSettings.percent}% off per item</div>
+    </div>`;
+  } else {
+    discBox.innerHTML='';
+  }
+
+  // Totals
+  const ts = document.getElementById('cartTotalSection');
+  ts.innerHTML = `
+    <div class="cart-total-row"><span>Subtotal</span><span>Rs.${subtotal}</span></div>
+    ${discount>0?`<div class="cart-total-row saving"><span>Discount (${discPct.toFixed(1)}%)</span><span>−Rs.${discount}</span></div>`:''}
+    <div class="cart-total-row final"><span>Total to Pay</span><span>Rs.${finalTotal}</span></div>
+  `;
+}
+
+function changeQty(id,delta) {
+  cart[id]=Math.max(0,(cart[id]||0)+delta);
+  if(cart[id]===0) delete cart[id];
+  updateCartUI(); renderCartPanel(); renderFoods();
+}
+
+// ══ ORDER TEXT ════════════════════════════════════════
+function buildOrderText() {
+  const items=Object.entries(cart).filter(([,q])=>q>0);
+  if(!items.length){showNotif('Cart is empty!');return null;}
+  let subtotal=0; let totalItems=0;
+  let text='🍽 *TAMRO Order*\n\n';
+  items.forEach(([id,qty])=>{
+    const f=foods.find(x=>x.id==id);
+    if(f){text+=`• ${f.name} × ${qty} = Rs.${f.price*qty}\n`;subtotal+=f.price*qty;totalItems+=qty;}
+  });
+  const discount=calcDiscount(subtotal,totalItems);
+  const discPct=getDiscountPct(totalItems);
+  const finalTotal=subtotal-discount;
+  text+=`\n💰 Subtotal: Rs.${subtotal}`;
+  if(discount>0) text+=`\n🎉 Discount (${discPct.toFixed(1)}% for ${totalItems} items): −Rs.${discount}`;
+  text+=`\n✅ *Total to Pay: Rs.${finalTotal}*`;
+  text+=`\n\n🙏 तम्रो लागि — TAMRO को माया!`;
+  return text;
+}
+
+function showSplash() {
+  const s=document.getElementById('orderSplash');
+  s.classList.add('open');
+  setTimeout(()=>s.classList.remove('open'),1800);
+}
+
+function orderWhatsApp() {
+  const txt=buildOrderText(); if(!txt)return;
+  closeCart();
+  window.open('https://wa.me/'+PHONE+'?text='+encodeURIComponent(txt),'_blank');
+  showSplash();
+}
+function orderFacebook() {
+  closeCart();
+  window.open('https://m.me/1129697586896241', '_blank');
+  showSplash();
+}
+
+
+
+function showMessengerPrompt(txt) {
+  const overlay = document.getElementById('messengerPrompt');
+  document.getElementById('messengerOrderText').textContent = txt;
+  overlay.classList.add('open');
+  document.getElementById('messengerCopyBtn').onclick = function() {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(txt).then(()=>showNotif('📋 Copied!'));
+    }
+  };
+  document.getElementById('messengerCloseBtn').onclick = function() {
+    overlay.classList.remove('open');
+  };
+  document.getElementById('messengerOpenBtn').onclick = function() {
+    overlay.classList.remove('open');
+  };
+}
+function orderSMS() {
+  const txt=buildOrderText(); if(!txt)return;
+  closeCart();
+  window.location.href='sms:'+PHONE+'?body='+encodeURIComponent(txt);
+  showSplash();
+}
+function orderCall() {
+  closeCart();
+  window.location.href='tel:+'+PHONE;
+  showSplash();
+}
+
+// ══ ADMIN ITEMS ═══════════════════════════════════════
+function renderAdminList() {
+  document.getElementById('adminCount').textContent=foods.length;
+  const el=document.getElementById('adminList');
+  if(!foods.length){el.innerHTML='<div class="empty"><span>📋</span>No items yet</div>';return;}
+  el.innerHTML=foods.map(f=>`
+    <div class="admin-item">
+      <div class="ai-emoji">${f.emoji||'🍽'}</div>
+      <div class="ai-info">
+        <h4>${f.name} <span class="status-pill">${f.cat}</span></h4>
+        <p>Rs.${f.price} · ${f.veg==='veg'?'🟢 Veg':'🔴 Non-veg'} · ${f.desc}</p>
+      </div>
+      <div class="ai-actions">
+        <button class="icon-btn edit" onclick="editItem(${f.id})">✏️</button>
+        <button class="icon-btn del" onclick="deleteItem(${f.id})">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+function saveItem() {
+  const name=document.getElementById('adminName').value.trim();
+  const price=parseInt(document.getElementById('adminPrice').value);
+  if(!name||!price){showNotif('Name & price required!');return;}
+  const id=document.getElementById('editId').value;
+  const item={
+    id:id?parseInt(id):nextId++,name,price,
+    cat:document.getElementById('adminCat').value,
+    veg:document.getElementById('adminVeg').value,
+    desc:document.getElementById('adminDesc').value.trim()||'Delicious item',
+    photo:document.getElementById('adminPhoto').value.trim(),
+    emoji:document.getElementById('adminEmoji').value.trim()||'🍽',
+  };
+  if(id){
+    const idx=foods.findIndex(f=>f.id===parseInt(id));
+    if(idx>-1)foods[idx]=item;
+    showNotif('✅ Item updated — customers will see change instantly!');
+  } else {
+    foods.push(item);
+    showNotif('✅ Item added — customers will see it instantly!');
+  }
+  saveFoodsData();
+  clearAdminForm(); renderAdminList(); renderCategories(); renderFoods();
+}
+
+function editItem(id) {
+  const f=foods.find(x=>x.id===id); if(!f)return;
+  document.getElementById('editId').value=f.id;
+  document.getElementById('adminName').value=f.name;
+  document.getElementById('adminPrice').value=f.price;
+  document.getElementById('adminCat').value=f.cat;
+  document.getElementById('adminVeg').value=f.veg;
+  document.getElementById('adminDesc').value=f.desc;
+  document.getElementById('adminPhoto').value=f.photo;
+  document.getElementById('adminEmoji').value=f.emoji;
+  const prev = document.getElementById('foodPhotoPreview');
+  if (f.photo) {
+    prev.innerHTML='<img src="'+f.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">';
+  } else {
+    prev.innerHTML='<span style="font-size:1.5rem;">📷</span>';
+  }
+  document.getElementById('cancelEditBtn').style.display='block';
+  document.getElementById('formTitle').textContent='✏️ Edit Item';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function cancelEdit(){clearAdminForm();}
+function clearAdminForm(){
+  ['editId','adminName','adminPrice','adminDesc','adminPhoto','adminEmoji'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('foodPhotoPreview').innerHTML='<span style="font-size:1.5rem;">📷</span>';
+  document.getElementById('adminPhotoFile').value='';
+  document.getElementById('adminCat').value='Momos';
+  document.getElementById('adminVeg').value='veg';
+  document.getElementById('cancelEditBtn').style.display='none';
+  document.getElementById('formTitle').textContent='➕ Add New Item';
+}
+function deleteItem(id){
+  if(!confirm('Delete this item?'))return;
+  foods=foods.filter(f=>f.id!==id);
+  if(cart[id])delete cart[id];
+  saveFoodsData(); renderAdminList(); renderCategories(); renderFoods(); updateCartUI();
+  showNotif('🗑 Item deleted — customers updated instantly!');
+}
+
+// ══ QR CODE ═══════════════════════════════════════════
+let activeQrMode = 'customer';
+function showQR(mode) {
+  activeQrMode = mode;
+  document.querySelectorAll('.qr-tab').forEach(t=>t.classList.remove('active'));
+  event.target.classList.add('active');
+  generateQR();
+}
+
+function generateQR() {
+  const el=document.getElementById('qrcode');
+  el.innerHTML='';
+  const url = activeQrMode==='admin' ? ADMIN_URL : CUSTOMER_URL;
+  document.getElementById('qrUrlBox').textContent = url;
+  try {
+    new QRCode(el,{text:url,width:220,height:220,colorDark:'#E84545',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
+  } catch(e) {
+    el.innerHTML=`<p style="font-size:.85rem;padding:1rem;color:var(--muted);">${url}</p>`;
+  }
+}
+
+// ══ VIEW SWITCH ═══════════════════════════════════════
+function switchView(name) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  const map={customer:'btnCustomer',admin:'btnAdmin',qr:'btnQr'};
+  const btn=document.getElementById(map[name]);
+  if(btn)btn.classList.add('active');
+  if(name==='admin')renderAdminList();
+  if(name==='qr')generateQR();
+}
+
+// ══ LOGO LONG-PRESS → PIN MODAL (backup admin access) ═
+let logoTimer;
+const logoBtn=document.getElementById('logoBtn');
+logoBtn.addEventListener('mousedown',()=>{logoTimer=setTimeout(openPinModal,1500);});
+logoBtn.addEventListener('touchstart',(e)=>{e.preventDefault();logoTimer=setTimeout(openPinModal,1500);});
+logoBtn.addEventListener('mouseup',()=>clearTimeout(logoTimer));
+logoBtn.addEventListener('touchend',()=>clearTimeout(logoTimer));
+logoBtn.addEventListener('mouseleave',()=>clearTimeout(logoTimer));
+
+function openPinModal(){
+  if(IS_ADMIN){switchView('admin');return;}
+  document.getElementById('pinModal').classList.add('open');
+  document.getElementById('pinInput').value='';
+  document.getElementById('pinError').textContent='';
+  setTimeout(()=>document.getElementById('pinInput').focus(),200);
+}
+function closePinModal(){document.getElementById('pinModal').classList.remove('open');}
+function checkPin(){
+  const val=document.getElementById('pinInput').value;
+  if(val===ADMIN_PIN){
+    closePinModal();
+    document.getElementById('btnAdmin').style.display='';
+    document.getElementById('adminQrTab').style.display='';
+    switchView('admin');
+    showNotif('🔓 Admin unlocked!');
+  } else {
+    document.getElementById('pinError').textContent='❌ Wrong PIN, try again';
+    document.getElementById('pinInput').value='';
+  }
+}
+document.getElementById('pinInput').addEventListener('keydown',(e)=>{if(e.key==='Enter')checkPin();});
+
+// ══ NOTIF ═════════════════════════════════════════════
+function showNotif(msg){
+  const n=document.getElementById('notif');
+  n.textContent=msg;n.classList.add('show');
+  setTimeout(()=>n.classList.remove('show'),2500);
+}
+
+// ══ LOGO UPLOAD ══════════════════════════════════════
+function handleLogoUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const dataUrl = ev.target.result;
+    localStorage.setItem('tamro_logo', dataUrl);
+    applyLogo(dataUrl);
+    showNotif('✅ Logo updated!');
+  };
+  reader.readAsDataURL(file);
+}
+
+function applyLogo(dataUrl) {
+  const img = document.getElementById('logoImg');
+  const txt = document.getElementById('logoText');
+  const preview = document.getElementById('logoPreviewAdmin');
+  if (dataUrl) {
+    img.src = dataUrl;
+    img.style.display = 'block';
+    txt.style.display = 'none';
+    if (preview) {
+      preview.innerHTML = '<img src="'+dataUrl+'" style="width:100%;height:100%;object-fit:contain;">';
+    }
+  } else {
+    img.style.display = 'none';
+    txt.style.display = '';
+    if (preview) {
+      preview.innerHTML = '<span style="font-size:1.8rem;color:var(--muted);">📷</span>';
+    }
+  }
+}
+
+function removeLogo() {
+  localStorage.removeItem('tamro_logo');
+  applyLogo(null);
+  document.getElementById('logoUpload').value = '';
+  showNotif('Logo removed');
+}
+
+// ══ FOOD PHOTO UPLOAD ═════════════════════════════════
+function handleFoodPhotoUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const dataUrl = ev.target.result;
+    document.getElementById('adminPhoto').value = dataUrl;
+    const preview = document.getElementById('foodPhotoPreview');
+    preview.innerHTML = '<img src="'+dataUrl+'" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">';
+    showNotif('📷 Photo ready!');
+  };
+  reader.readAsDataURL(file);
+}
+
+// ══ INIT ══════════════════════════════════════════════
+// Load saved logo
+const savedLogo = localStorage.getItem('tamro_logo');
+if (savedLogo) applyLogo(savedLogo);
+
+renderCategories();
+renderFoods();
+if(IS_ADMIN) renderAdminList();
+</script>
+</body>
+</html>
