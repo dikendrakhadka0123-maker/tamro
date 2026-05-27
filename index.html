@@ -571,7 +571,7 @@ let foods=[],disc={min:2,pct:1.5,max:15},cart={},activeCat='All',gpsLoc=null,nex
 // ══ GOOGLE SHEETS SYNC ═══════════════════════════════
 async function gsGet(){
   try{
-    const r=await fetch(SB_URL+'/rest/v1/menu?id=eq.tamro&select=data',{
+    const r=await fetch(SB_URL+'/rest/v1/menu&select=data',{
       headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
     });
     if(!r.ok)return null;
@@ -582,10 +582,10 @@ async function gsGet(){
 }
 async function gsSet(d){
   try{
-    await fetch(SB_URL+'/rest/v1/menu?id=eq.tamro',{
-      method:'PATCH',
-      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
-      body:JSON.stringify({data:d})
+    await fetch(SB_URL+'/rest/v1/menu',{
+      method:'POST',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},
+      body:JSON.stringify({id:'tamro',data:d})
     });
   }catch(e){console.log('sbSet err:',e);}
 }
