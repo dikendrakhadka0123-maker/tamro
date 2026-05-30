@@ -367,6 +367,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 /* Admin delete order button */
 .del-order-btn{background:none;border:1.5px solid #ffcccc;color:var(--p);border-radius:7px;padding:3px 9px;cursor:pointer;font-size:.72rem;font-weight:700;margin-left:auto;flex-shrink:0;}
 .del-order-btn:hover{background:#fff0f0;}
+
+/* Category manager */
+.cat-tag{display:inline-flex;align-items:center;gap:5px;background:#fff3f0;border:1.5px solid var(--border);border-radius:50px;padding:4px 10px;font-size:.78rem;font-weight:600;margin:3px;}
+.cat-tag button{background:none;border:none;cursor:pointer;color:var(--p);font-size:.85rem;line-height:1;padding:0;}
+
+/* Combo cards - customer view */
+.combo-card{background:linear-gradient(135deg,#fff8f0,#fff3f0);border:2px solid #FFD0B0;border-radius:16px;padding:1rem 1.1rem;margin-bottom:.9rem;position:relative;overflow:hidden;}
+.combo-card::before{content:'🔥';position:absolute;top:10px;right:12px;font-size:1.4rem;opacity:.5;}
+.combo-name{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:800;color:var(--text);margin-bottom:.3rem;}
+.combo-items{font-size:.8rem;color:var(--muted);margin-bottom:.6rem;line-height:1.6;}
+.combo-pricing{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;}
+.combo-orig{font-size:.82rem;color:var(--muted);text-decoration:line-through;}
+.combo-price{font-size:1.1rem;font-weight:800;color:var(--p);}
+.combo-save{background:#e8f5e9;color:#2e7d32;font-size:.7rem;font-weight:700;padding:2px 9px;border-radius:50px;}
+
+/* Combo admin list */
+.combo-ai{background:#fff;border-radius:11px;padding:.75rem;display:flex;align-items:flex-start;gap:.75rem;box-shadow:var(--sh);margin-bottom:7px;}
+.combo-ai-info{flex:1;}
+.combo-ai-info h4{font-size:.88rem;font-weight:700;margin-bottom:2px;}
+.combo-ai-info p{font-size:.75rem;color:var(--muted);}
 </style>
 </head>
 <body>
@@ -427,7 +447,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 <div class="view" id="view-offers">
   <div class="pagepad">
     <p class="page-h2">🎁 Special Offers</p>
-    <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">Use promo codes at checkout for savings!</p>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">Combos, packages & promo codes!</p>
+    <div id="combosContent" style="margin-bottom:1rem"></div>
     <div id="offersContent"></div>
   </div>
 </div>
@@ -597,6 +618,33 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
       </div>
     </div>
     <div class="asec" style="padding-top:0">
+      <div class="abox blue"><h4>🗂️ Manage Categories</h4>
+        <div id="catTagList" style="margin-bottom:.7rem"></div>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="newCatInput" placeholder="e.g. Thali, Soup…" style="flex:1;padding:8px 11px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;outline:none;">
+          <button class="pbtn" style="width:auto;padding:8px 14px" onclick="addCat()">+ Add</button>
+        </div>
+      </div>
+    </div>
+    <div class="asec" style="padding-top:0">
+      <div class="abox orange"><h4>📦 Combo Packages</h4>
+        <p style="font-size:.78rem;color:var(--muted);margin-bottom:.8rem">Create meal combos with included items & special price. Shown to customers in Offers.</p>
+        <div id="comboAdminList" style="margin-bottom:.8rem"></div>
+        <div style="background:#fff;border-radius:10px;padding:.8rem;border:1.5px solid var(--border)">
+          <div class="frow">
+            <div class="fg"><label>Package Name *</label><input type="text" id="comboName" placeholder="e.g. Family Feast"></div>
+            <div class="fg"><label>Emoji</label><input type="text" id="comboEmoji" placeholder="🍱" maxlength="4"></div>
+          </div>
+          <div class="fg" style="margin-bottom:8px"><label>Included Items (what's inside)</label><input type="text" id="comboItems" placeholder="e.g. 2 Momos, 1 Fried Rice, 2 Drinks"></div>
+          <div class="frow">
+            <div class="fg"><label>Original Price (Rs.)</label><input type="number" id="comboOrig" placeholder="500"></div>
+            <div class="fg"><label>Combo Price (Rs.) *</label><input type="number" id="comboPrice" placeholder="399"></div>
+          </div>
+          <button class="pbtn" onclick="saveCombo()">💾 Save Package</button>
+        </div>
+      </div>
+    </div>
+    <div class="asec" style="padding-top:0">
       <h3 id="formtitle">➕ Add New Item</h3>
       <input type="hidden" id="editId">
       <div class="frow">
@@ -727,7 +775,7 @@ const SB_URL='https://eqvdtomtgxwgdtnniuzv.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxdmR0b210Z3h3Z2R0bm5pdXp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3ODY2MjMsImV4cCI6MjA5NTM2MjYyM30.Hy0WFFSOSAnGDbnUVxJIZYZAkGpT8l4FAGaM2wYIjq0';
 
 // Storage keys
-const K={FOODS:'tf4',DISC:'td2',ANN:'ta2',AUTH:'tauth2',DBOYS:'tdb2',REPLY:'tr1',LOGO:'tl1',ORDERS:'to1',DELIVERY:'tdel1',RATINGS:'trat1',HOURS:'th1',PROMOS:'tp1',QRPAY:'tqp1',HIST:'thist1',ORDER_STATUS:'torderstatus'};
+const K={FOODS:'tf4',DISC:'td2',ANN:'ta2',AUTH:'tauth2',DBOYS:'tdb2',REPLY:'tr1',LOGO:'tl1',ORDERS:'to1',DELIVERY:'tdel1',RATINGS:'trat1',HOURS:'th1',PROMOS:'tp1',QRPAY:'tqp1',HIST:'thist1',ORDER_STATUS:'torderstatus',CATS:'tcats1',COMBOS:'tcombos1'};
 
 // Default data
 const DF=[
@@ -803,7 +851,7 @@ function load(){
   try{const s=localStorage.getItem(K.FOODS);foods=(s&&JSON.parse(s).length>0)?JSON.parse(s):DF;}catch{foods=DF;}
   try{const s=localStorage.getItem(K.DISC);disc=s?JSON.parse(s):{min:2,pct:1.5,max:15};}catch{disc={min:2,pct:1.5,max:15};}
   nextId=foods.length?Math.max(...foods.map(f=>f.id))+1:1;
-  renderCats();renderFoods();renderDiscBanner();renderTicker();renderHours();loadDelivery();loadQRPayments();loadDeliveryStatus();
+  renderCats();renderFoods();renderDiscBanner();renderTicker();renderHours();loadDelivery();loadQRPayments();loadDeliveryStatus();renderCombosCustomer();renderPromos();
 }
 
 function save(){localStorage.setItem(K.FOODS,JSON.stringify(foods));syncToGS();}
@@ -1070,13 +1118,82 @@ function renderPromos(){
   if(al)al.innerHTML=promos.length?promos.map((p,i)=>`<div style="display:flex;align-items:center;gap:8px;background:#fff;border-radius:8px;padding:.5rem .8rem;border:1px solid var(--border);margin-bottom:5px"><span style="flex:1;font-size:.8rem"><strong>${p.code}</strong> — ${p.pct}% — ${p.desc}</span><button onclick="delPromo(${i})" style="background:none;border:none;cursor:pointer;color:var(--p)">🗑</button></div>`).join(''):'<p style="font-size:.8rem;color:var(--muted)">No promos yet</p>';
 }
 
+// ══ CATEGORIES ════════════════════════════════════════
+const DEFAULT_CATS=['Momos','Rice','Noodles','Snacks','Drinks','Pizza','Burger','Dessert'];
+function getCats(){return JSON.parse(localStorage.getItem(K.CATS)||'null')||DEFAULT_CATS;}
+function saveCats(c){localStorage.setItem(K.CATS,JSON.stringify(c));}
+function addCat(){
+  const v=document.getElementById('newCatInput').value.trim();
+  if(!v){showNotif('Enter a category name!');return;}
+  const c=getCats();
+  if(c.find(x=>x.toLowerCase()===v.toLowerCase())){showNotif('Already exists!');return;}
+  c.push(v);saveCats(c);
+  document.getElementById('newCatInput').value='';
+  renderCatManager();updateCatSelect();renderCats();showNotif('✅ Category added!');
+}
+function delCat(i){
+  const c=getCats();
+  if(confirm('Delete category "'+c[i]+'"?')){c.splice(i,1);saveCats(c);renderCatManager();updateCatSelect();renderCats();showNotif('🗑 Deleted!');}
+}
+function renderCatManager(){
+  const el=document.getElementById('catTagList');if(!el)return;
+  const cats=getCats();
+  el.innerHTML=cats.map((c,i)=>`<span class="cat-tag">${c}<button onclick="delCat(${i})" title="Delete">×</button></span>`).join('');
+}
+function updateCatSelect(){
+  const sel=document.getElementById('acat');if(!sel)return;
+  const cur=sel.value;
+  const cats=getCats();
+  sel.innerHTML=cats.map(c=>`<option${c===cur?' selected':''}>${c}</option>`).join('');
+}
+
+// ══ COMBO PACKAGES ════════════════════════════════════
+function getCombos(){return JSON.parse(localStorage.getItem(K.COMBOS)||'[]');}
+function saveCombo(){
+  const name=document.getElementById('comboName').value.trim();
+  const price=parseInt(document.getElementById('comboPrice').value);
+  if(!name||!price){showNotif('Package name & price required!');return;}
+  const orig=parseInt(document.getElementById('comboOrig').value)||0;
+  const items=document.getElementById('comboItems').value.trim();
+  const emoji=document.getElementById('comboEmoji').value.trim()||'📦';
+  const combos=getCombos();
+  combos.push({id:Date.now(),name,emoji,items,price,orig});
+  localStorage.setItem(K.COMBOS,JSON.stringify(combos));
+  document.getElementById('comboName').value='';
+  document.getElementById('comboItems').value='';
+  document.getElementById('comboPrice').value='';
+  document.getElementById('comboOrig').value='';
+  document.getElementById('comboEmoji').value='';
+  renderComboAdmin();renderCombosCustomer();showNotif('✅ Package saved!');
+}
+function delCombo(id){
+  const combos=getCombos().filter(c=>c.id!==id);
+  localStorage.setItem(K.COMBOS,JSON.stringify(combos));
+  renderComboAdmin();renderCombosCustomer();showNotif('🗑 Package removed!');
+}
+function renderComboAdmin(){
+  const el=document.getElementById('comboAdminList');if(!el)return;
+  const combos=getCombos();
+  if(!combos.length){el.innerHTML='<p style="font-size:.8rem;color:var(--muted)">No packages yet</p>';return;}
+  el.innerHTML=combos.map(c=>`<div class="combo-ai"><div style="font-size:1.8rem;width:40px;text-align:center">${c.emoji}</div><div class="combo-ai-info"><h4>${c.name} — Rs.${c.price}${c.orig?' <span style="font-size:.72rem;color:var(--muted);text-decoration:line-through">Rs.'+c.orig+'</span>':''}</h4><p>${c.items||'—'}</p></div><button class="aibtn" onclick="delCombo(${c.id})" style="margin-top:2px">🗑</button></div>`).join('');
+}
+function renderCombosCustomer(){
+  const el=document.getElementById('combosContent');if(!el)return;
+  const combos=getCombos();
+  if(!combos.length){el.innerHTML='';return;}
+  el.innerHTML=`<h3 style="font-size:.88rem;font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.7rem">📦 Meal Packages</h3>`+combos.map(c=>{
+    const saving=c.orig&&c.orig>c.price?c.orig-c.price:0;
+    return `<div class="combo-card"><div class="combo-name">${c.emoji} ${c.name}</div><div class="combo-items">📋 ${c.items||'See description'}</div><div class="combo-pricing">${c.orig?`<span class="combo-orig">Rs.${c.orig}</span>`:''}<span class="combo-price">Rs.${c.price}</span>${saving?`<span class="combo-save">Save Rs.${saving}</span>`:''}</div></div>`;
+  }).join('');
+}
+
 // ══ HISTORY ═══════════════════════════════════════════
 function saveHist(txt,total){const h=JSON.parse(localStorage.getItem(K.HIST)||'[]');h.unshift({txt,total,date:new Date().toLocaleString()});if(h.length>20)h.pop();localStorage.setItem(K.HIST,JSON.stringify(h));renderHistory();if(IS_ADMIN) renderDeliveryStatusList();}
 function renderHistory(){const h=JSON.parse(localStorage.getItem(K.HIST)||'[]');const el=document.getElementById('historyContent');if(!el)return;if(!h.length){el.innerHTML='<div class="empty"><span>📋</span>No orders yet</div>';return;}el.innerHTML=h.map(o=>`<div class="hitem"><h4 style="font-size:.88rem;font-weight:700;margin-bottom:.3rem">Rs.${o.total}<span class="hbadge">✅ Sent</span></h4><p style="font-size:.78rem;color:var(--muted)">${o.date}</p><p style="margin-top:.4rem;font-size:.78rem;white-space:pre-line">${o.txt.substring(0,180)}${o.txt.length>180?'…':''}</p></div>`).join('');}
 function clearHistory(){if(!confirm('Clear all?'))return;localStorage.removeItem(K.HIST);renderHistory();if(IS_ADMIN) renderDeliveryStatusList();}
 
 // ══ FOOD RENDER ═══════════════════════════════════════
-function renderCats(){const cats=['All',...new Set(foods.map(f=>f.cat))];document.getElementById('cats').innerHTML=cats.map(c=>`<button class="chip ${c===activeCat?'on':''}" onclick="setCat('${c}')">${c}</button>`).join('');}
+function renderCats(){const cats=['All',...new Set([...getCats(),...foods.map(f=>f.cat)])];document.getElementById('cats').innerHTML=cats.map(c=>`<button class="chip ${c===activeCat?'on':''}" onclick="setCat('${c}')">${c}</button>`).join('');}
 function setCat(c){activeCat=c;renderCats();renderFoods();}
 
 function renderFoods(){
@@ -1192,7 +1309,7 @@ function showView(name){
 // ══ LOGIN ═════════════════════════════════════════════
 function getAuth(){const s=localStorage.getItem(K.AUTH);return s?JSON.parse(s):{u:'TAMRO',p:'tamro123'};}
 function saveAuth(o){localStorage.setItem(K.AUTH,JSON.stringify(o));}
-function doLogin(){const u=document.getElementById('luser').value.trim();const p=document.getElementById('lpass').value;const a=getAuth();if(u===a.u&&p===a.p){loggedIn=true;document.getElementById('lscreen').classList.remove('on');document.getElementById('acontent').style.display='block';document.getElementById('lerr').textContent='';document.getElementById('dmin').value=disc.min;document.getElementById('dpct').value=disc.pct;document.getElementById('dmax').value=disc.max;const ar=localStorage.getItem(K.REPLY);if(ar){const el=document.getElementById('autoreply');if(el)el.value=ar;}const qp=localStorage.getItem(K.QRPAY);if(qp){const prev=document.getElementById('qrpayPrev');if(prev)prev.innerHTML=`<img src="${qp}" style="width:100%;height:100%;object-fit:contain;border-radius:8px">`;}renderFoodList();renderTicker();renderDboys();renderPromos();renderHours();showNotif('Welcome back, TAMRO! 👋');}else document.getElementById('lerr').textContent='❌ Wrong username or password';}
+function doLogin(){const u=document.getElementById('luser').value.trim();const p=document.getElementById('lpass').value;const a=getAuth();if(u===a.u&&p===a.p){loggedIn=true;document.getElementById('lscreen').classList.remove('on');document.getElementById('acontent').style.display='block';document.getElementById('lerr').textContent='';document.getElementById('dmin').value=disc.min;document.getElementById('dpct').value=disc.pct;document.getElementById('dmax').value=disc.max;const ar=localStorage.getItem(K.REPLY);if(ar){const el=document.getElementById('autoreply');if(el)el.value=ar;}const qp=localStorage.getItem(K.QRPAY);if(qp){const prev=document.getElementById('qrpayPrev');if(prev)prev.innerHTML=`<img src="${qp}" style="width:100%;height:100%;object-fit:contain;border-radius:8px">`;}renderFoodList();renderTicker();renderDboys();renderPromos();renderHours();renderCatManager();updateCatSelect();renderComboAdmin();showNotif('Welcome back, TAMRO! 👋');}else document.getElementById('lerr').textContent='❌ Wrong username or password';}
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!loggedIn)doLogin();});
 function doLogout(){loggedIn=false;document.getElementById('lscreen').classList.add('on');document.getElementById('acontent').style.display='none';document.getElementById('luser').value='';document.getElementById('lpass').value='';}
 
