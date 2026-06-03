@@ -199,7 +199,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);ove
 .qinst h4{font-weight:700;margin-bottom:.6rem;color:var(--p);font-size:.9rem;}
 .qinst ol{padding-left:1rem;}
 .qinst li{margin-bottom:.4rem;font-size:.83rem;}
-.lscreen{background:linear-gradient(135deg,#E84545,#FF6B35);padding:2rem 1.2rem;display:none;align-items:center;justify-content:center;min-height:60vh;}
+.lscreen{background:linear-gradient(135deg,#E84545,#FF6B35);padding:2rem 1.2rem;display:none;align-items:center;justify-content:center;min-height:100vh;position:fixed;inset:0;z-index:2000;overflow-y:auto;}
 .lscreen.on{display:flex;}
 .lbox{background:#fff;border-radius:20px;padding:1.8rem;width:100%;max-width:360px;text-align:center;}
 .llogo{font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:900;color:var(--p);}
@@ -569,7 +569,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);ove
 .login-btn:active{transform:translateY(0);}
 #acontent{display:none;}
 #acontent.visible{display:block;}
-.lscreen{position:relative;z-index:10;}
 </style>
 </head>
 <body>
@@ -2312,14 +2311,24 @@ if(IS_DBOY){
   document.addEventListener('DOMContentLoaded', dbInit);
   if(document.readyState!=='loading') dbInit();
 } else {
-  if(IS_CUSTOMER){document.getElementById('btnAdmin').style.display='none';document.getElementById('btAdmin').style.display='none';}
-  else{document.getElementById('btnAdmin').style.display='';document.getElementById('btAdmin').style.display='flex';document.getElementById('adminQRtab').style.display='';}
+  if(IS_CUSTOMER){
+    document.getElementById('btnAdmin').style.display='none';
+    document.getElementById('btAdmin').style.display='none';
+  } else {
+    // IS_ADMIN — show admin nav button
+    document.getElementById('btnAdmin').style.display='';
+    document.getElementById('btAdmin').style.display='flex';
+    document.getElementById('adminQRtab').style.display='';
+  }
   const sl=localStorage.getItem(K.LOGO);if(sl)applyLogo(sl);
   try{const sg=localStorage.getItem('tamro_gps');if(sg)gpsLoc=JSON.parse(sg);}catch{}
   load();
   updateBadge();
   fetchGS();
   setInterval(fetchGS,15000);
+
+  // If admin URL, immediately go to admin view (shows login screen)
+  if(IS_ADMIN) showView('admin');
 
   // ══ CUSTOMER ONBOARDING POPUP ═════════════════════════
   (function initOnboarding(){
