@@ -3855,6 +3855,23 @@ if(IS_DBOY){
   fetchGS();
   setInterval(fetchGS,20000);
   initInstallBanner();
+  // ── Fix: mobile browsers pause setInterval timers while a tab/app is
+  // backgrounded or minimized. Without this, switching away and back
+  // (e.g. checking admin in another tab) leaves stale data on screen
+  // until the OS resumes the paused timer, which can take a long time
+  // or may not happen reliably. Re-fetch immediately the moment the
+  // tab becomes visible again, so data is always fresh on return. ──
+  document.addEventListener('visibilitychange',function(){
+    if(document.visibilityState==='visible'){
+      fetchGS();
+      if(IS_ADMIN&&loggedIn)adminRefreshOrdersForced();
+    }
+  });
+  // Also catch the iOS-specific bfcache restore (back/forward navigation,
+  // app-switcher return) which visibilitychange can sometimes miss.
+  window.addEventListener('pageshow',function(e){
+    if(e.persisted)fetchGS();
+  });
 
   // If admin URL, immediately go to admin view (shows login screen)
   if(IS_ADMIN) showView('admin');
