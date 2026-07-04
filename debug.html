@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Debug Info</title>
+<style>
+body{font-family:monospace;font-size:16px;padding:20px;background:#111;color:#0f0;line-height:1.6;word-break:break-all;}
+.row{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #333;}
+.label{color:#ff0;font-weight:bold;}
+</style>
+</head>
+<body>
+<h2 style="color:#fff">TAMRO Debug Info</h2>
+<div class="row"><div class="label">navigator.userAgent:</div><div id="ua"></div></div>
+<div class="row"><div class="label">Is iOS (matches /iPad|iPhone|iPod/):</div><div id="isios"></div></div>
+<div class="row"><div class="label">display-mode standalone (matchMedia):</div><div id="standalone1"></div></div>
+<div class="row"><div class="label">navigator.standalone:</div><div id="standalone2"></div></div>
+<div class="row"><div class="label">'Notification' in window:</div><div id="notifexists"></div></div>
+<div class="row"><div class="label">Notification.permission:</div><div id="notifperm"></div></div>
+<div class="row"><div class="label">'serviceWorker' in navigator:</div><div id="swexists"></div></div>
+<div class="row"><div class="label">Current URL:</div><div id="url"></div></div>
+<script>
+document.getElementById('ua').textContent = navigator.userAgent;
+document.getElementById('isios').textContent = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+document.getElementById('standalone1').textContent = window.matchMedia('(display-mode: standalone)').matches;
+document.getElementById('standalone2').textContent = window.navigator.standalone === true ? 'true' : String(window.navigator.standalone);
+document.getElementById('notifexists').textContent = ('Notification' in window);
+document.getElementById('notifperm').textContent = ('Notification' in window) ? Notification.permission : 'N/A (Notification API not present)';
+document.getElementById('swexists').textContent = ('serviceWorker' in navigator);
+document.getElementById('url').textContent = location.href;
+</script>
+</body>
+</html>
