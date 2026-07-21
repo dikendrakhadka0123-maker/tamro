@@ -775,6 +775,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);ove
     </div>
     <button onclick="saveDelivery()" style="background:var(--g);color:#fff;border:none;border-radius:9px;padding:9px 16px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.85rem;margin-top:.7rem;width:100%;">💾 Save My Details</button>
   </div>
+  <div id="branchHeading" style="margin:0 1.2rem .5rem"></div>
   <div class="sbar"><span class="sicon">🔍</span><input type="text" id="searchInput" placeholder="Search food or restaurant…" oninput="renderFoods()"></div>
   <div class="cats" id="cats"></div>
   <div id="adBanner" style="margin:0 1.2rem .8rem;border-radius:16px;overflow:hidden;cursor:pointer;box-shadow:0 6px 20px rgba(232,69,69,.25);display:none;touch-action:pan-y;"></div>
@@ -925,6 +926,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);ove
       <h2>⚙️ Admin Panel</h2>
       <p>Changes auto-sync to all customers!</p>
       <p style="font-size:.68rem;opacity:.7;margin-top:.2rem">App version: <span id="appVersionTag"></span></p>
+      <div style="margin-top:.7rem;background:rgba(255,255,255,.15);border-radius:10px;padding:8px 11px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <label style="font-size:.72rem;font-weight:800;color:#fff;opacity:.9">📍 Viewing:</label>
+        <select id="adminTopBranchSelect" onchange="setAdminMenuBranch(this.value)" style="font-family:'DM Sans',sans-serif;font-weight:800;font-size:.82rem;padding:6px 10px;border-radius:8px;border:none;background:#fff;color:#1a1a2e;flex:1;min-width:140px"></select>
+      </div>
       <button onclick="doLogout()" style="margin-top:.6rem;background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:600;">🚪 Logout</button>
     </div>
     
@@ -979,7 +984,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);ove
       <button class="pbtn gray" id="cancelbtn" style="display:none;margin-top:7px" onclick="cancelEdit()">✕ Cancel Edit</button>
     </div>
     <div class="asec" style="padding-top:0">
-      <h3>📋 Menu Items (<span id="foodcount">0</span>)</h3>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:.5rem">
+        <h3 style="margin:0" id="foodlistHeading">📋 Menu Items (<span id="foodcount">0</span>)</h3>
+        <select id="adminMenuBranchSelect" onchange="setAdminMenuBranch(this.value)" style="font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:700;padding:5px 8px;border-radius:8px;border:1.5px solid var(--border);max-width:180px"></select>
+      </div>
       <div class="alist" id="foodlist"></div>
     </div>
     <div class="asec" style="padding-top:0">
@@ -1103,12 +1111,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);ove
       <div class="abox" style="background:#fff8f0;border:1.5px solid #ffdcb0">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;gap:6px">
           <h4 style="margin:0;color:#e65100">🧾 Restaurant Purchase vs Sales — Monthly Sheets</h4>
-          <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">
-            <button onclick="fixAllRestaurantOrders()" style="background:#fff;color:#c0392b;border:1.5px solid #c0392b;border-radius:50px;padding:5px 10px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.72rem">🔁 Fix All Orders</button>
-            <button onclick="renderRestaurantMonthlySheets()" style="background:#e65100;color:#fff;border:none;border-radius:50px;padding:5px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.75rem">🔄 Refresh</button>
-          </div>
+          <button onclick="renderRestaurantMonthlySheets()" style="background:#e65100;color:#fff;border:none;border-radius:50px;padding:5px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.75rem;flex-shrink:0">🔄 Refresh</button>
         </div>
-        <p style="font-size:.68rem;color:#a05a00;margin-bottom:.3rem">"Fix All Orders" scans your real delivery history and corrects anything showing Rs.0 or missing entirely — using the EXACT amount from the original order for sales, and today's menu rate for purchase price. Safe to run anytime. If a purchase price has changed since an old order, correct that one entry by hand with ✏️ on its card — once set, it's never auto-changed again.</p>
+        <p style="font-size:.68rem;color:#a05a00;margin-bottom:.3rem">Purchase (buy) and sales (sell) amounts are calculated automatically from the Buy Price and Selling Price you set on each menu item — no manual entry needed.</p>
         <p style="font-size:.72rem;color:#a05a00;margin-bottom:.6rem">One sheet per calendar month, newest first — every restaurant's purchase (buy) price vs sales (sell) price, with a grand total at the bottom of each sheet. Kept indefinitely; delete a month once you've finished auditing it.</p>
         <div id="restaurantMonthlySheets"><p style="font-size:.8rem;color:var(--muted)">⏳ Loading…</p></div>
       </div>
@@ -1530,6 +1535,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);ove
     <span class="dp-icon" id="dpIcon">✅</span>
     <div class="dp-title" id="dpTitle">Order Received!</div>
     <div class="dp-sub" id="dpSub">Your order has been received by TAMRO. We're getting everything ready for you!</div>
+    <a id="dpCallBtn" href="#" style="display:none;background:#25D366;color:#fff;text-decoration:none;border-radius:9px;padding:9px 16px;font-family:'DM Sans',sans-serif;font-weight:800;font-size:.85rem;margin:.6rem auto 0">📞 Call</a>
     <div class="dp-timer" id="dpTimer" style="display:none"></div>
     <button class="dp-close" onclick="closeDeliveryPopup()">OK, Got it!</button>
   </div>
@@ -1746,6 +1752,7 @@ function isOutOfDeliveryRange(lat,lng){
 // ── Admin: Locations CRUD ──────────────────────────────
 function renderLocationsAdmin(){
   updateLocationSelect();
+  if(typeof renderBranchHeading==='function')renderBranchHeading();
   if(typeof renderDboys==='function')renderDboys();
   const el=document.getElementById('locList');
   if(!el)return;
@@ -1827,12 +1834,44 @@ function toggleLocationActive(id){
 function deleteLocation(id){
   if(!confirm('Delete this location? Food items assigned to it will remain but won\'t show to any customer until reassigned.'))return;
   saveLocationsList(getLocations().filter(l=>l.id!==id));
+  if(adminMenuBranchId===id)adminMenuBranchId=null;
   renderLocationsAdmin();
   showNotif('🗑 Location deleted');
 }
 
 // ── Customer-facing: resolve & gate by location ────────
 let currentLocation=null;
+// Admin-only "which branch am I looking at" filter — never used for real
+// customers (they're always auto-matched by GPS via currentLocation above).
+// null = viewing/managing all branches at once.
+let adminMenuBranchId=null;
+function setAdminMenuBranch(id){
+  adminMenuBranchId=id||null;
+  renderBranchHeading();
+  if(typeof renderFoods==='function')renderFoods();
+  if(typeof renderFoodList==='function')renderFoodList();
+}
+// Renders both the admin's branch-preview dropdown (top of the menu page,
+// admin-only) and the customer's plain branch-name heading, plus keeps the
+// admin panel's own branch filter select in sync with the same selection.
+function renderBranchHeading(){
+  const el=document.getElementById('branchHeading');
+  const locs=getLocations();
+  const optsHtml=(sel)=>'<option value="">📍 All Branches</option>'+locs.map(l=>`<option value="${l.id}"${sel===l.id?' selected':''}>${l.name}</option>`).join('');
+  if(el){
+    if(IS_ADMIN){
+      el.innerHTML=locs.length?`<select id="menuBranchSelect" onchange="setAdminMenuBranch(this.value)" style="font-family:'DM Sans',sans-serif;font-weight:800;font-size:.85rem;padding:7px 11px;border-radius:9px;border:1.5px solid var(--border);background:#fff;color:var(--text)">${optsHtml(adminMenuBranchId)}</select>`:'';
+    } else if(IS_CUSTOMER){
+      el.innerHTML=currentLocation?`<div style="font-family:'DM Sans',sans-serif;font-weight:800;font-size:.85rem;color:var(--p)">📍 ${currentLocation.name} Branch</div>`:'';
+    } else {
+      el.innerHTML='';
+    }
+  }
+  const panelSel=document.getElementById('adminMenuBranchSelect');
+  if(panelSel)panelSel.innerHTML=optsHtml(adminMenuBranchId);
+  const topSel=document.getElementById('adminTopBranchSelect');
+  if(topSel)topSel.innerHTML=optsHtml(adminMenuBranchId);
+}
 function resolveCustomerLocation(){
   if(!IS_CUSTOMER)return;
   let lat=gpsLoc?parseFloat(gpsLoc.lat):null, lng=gpsLoc?parseFloat(gpsLoc.lng):null;
@@ -2112,7 +2151,7 @@ const SB_URL='https://eqvdtomtgxwgdtnniuzv.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxdmR0b210Z3h3Z2R0bm5pdXp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3ODY2MjMsImV4cCI6MjA5NTM2MjYyM30.Hy0WFFSOSAnGDbnUVxJIZYZAkGpT8l4FAGaM2wYIjq0';
 
 // Storage keys
-const K={FOODS:'tf4',DISC:'td2',ANN:'ta2',AUTH:'tauth2',DBOYS:'tdb2',REPLY:'tr1',LOGO:'tl1',ORDERS:'to1',DELIVERY:'tdel1',RATINGS:'trat1',HOURS:'th1',PROMOS:'tp1',QRPAY:'tqp1',HIST:'thist1',ORDER_STATUS:'torderstatus',CATS:'tcats1',COMBOS:'tcombos1',AD:'tad1',PETROL:'tpetrol1',RESTAURANTS:'trests1',REST_ORDERS:'trestorders1',DELETED_REST_DAYS:'tdelrestdays1',DELETED_ORDER_IDS:'tdelorderids1',FLAGGED:'tflagged1',LOCATIONS:'tlocs1',REST_OVERRIDES:'trestoverride1',APP_ACTIVITY:'tappact1',DBOY_LOGINS:'tdblogins1'};
+const K={FOODS:'tf4',DISC:'td2',ANN:'ta2',AUTH:'tauth2',DBOYS:'tdb2',REPLY:'tr1',LOGO:'tl1',ORDERS:'to1',DELIVERY:'tdel1',RATINGS:'trat1',HOURS:'th1',PROMOS:'tp1',QRPAY:'tqp1',HIST:'thist1',ORDER_STATUS:'torderstatus',CATS:'tcats1',COMBOS:'tcombos1',AD:'tad1',PETROL:'tpetrol1',RESTAURANTS:'trests1',REST_ORDERS:'trestorders1',DELETED_REST_DAYS:'tdelrestdays1',DELETED_ORDER_IDS:'tdelorderids1',FLAGGED:'tflagged1',LOCATIONS:'tlocs1',APP_ACTIVITY:'tappact1',DBOY_LOGINS:'tdblogins1'};
 
 // Default data
 const DF=[
@@ -2613,6 +2652,27 @@ function mergeLogObjects(local,remote,deletedDays,deletedOrderIds){
 }
 
 async function syncToGS(){
+  // Safety check FIRST: if this browser session never confirmed real menu
+  // data (still on the DF placeholder list because localStorage was empty
+  // and the cloud fetch hasn't landed yet), pushing now would permanently
+  // overwrite whatever real menu is already in the cloud — this is exactly
+  // what caused menu items to vanish before. Check the cloud before ever
+  // writing to it in this state.
+  if(_foodsIsFallback){
+    try{
+      const cloud=await gsGet();
+      if(cloud&&Array.isArray(cloud.foods)&&cloud.foods.length>0){
+        foods=cloud.foods;
+        nextId=Math.max(...foods.map(f=>f.id))+1;
+        localStorage.setItem(K.FOODS,JSON.stringify(foods));
+        _foodsIsFallback=false;
+        renderCats();renderFoods();if(IS_ADMIN&&loggedIn)renderFoodList();
+        showNotif('⚠️ Your existing menu synced in first — please redo that last change to be safe.');
+        return;
+      }
+    }catch(e){ /* cloud unreachable — fall through cautiously below */ }
+    _foodsIsFallback=false; // cloud genuinely has nothing yet — this really is a fresh setup
+  }
   const ann=JSON.parse(localStorage.getItem(K.ANN)||'null')||DA;
   const combos=JSON.parse(localStorage.getItem(K.COMBOS)||'[]');
   const cats=JSON.parse(localStorage.getItem(K.CATS)||'null')||[];
@@ -2651,6 +2711,13 @@ async function syncToGS(){
   }
 }
 
+// Runs one piece of a sync poll in isolation — if this specific field's
+// data is malformed and throws, it's logged and skipped, but every OTHER
+// field in the same poll still applies normally. Before this, a single bad
+// field could silently abort the rest of that poll's updates every time.
+function _safeApply(label,fn){
+  try{ fn(); }catch(e){ console.error('fetchGS: failed applying "'+label+'":',e); }
+}
 async function fetchGS(){
   const d=await gsGet();
   if(!d||!d.updatedAt)return;
@@ -2660,106 +2727,144 @@ async function fetchGS(){
   // from just before our save finished writing (overwriting what we just set).
   const justSaved=(Date.now()-_lastLocalSaveTs)<5000;
   if(!justSaved){
-    if(d.ann&&Array.isArray(d.ann)&&d.ann.length>0){localStorage.setItem(K.ANN,JSON.stringify(d.ann));renderTicker();}
-    if(d.hasOwnProperty('ad')){
-      if(d.ad){localStorage.setItem(K.AD,JSON.stringify(d.ad));}
-      else{localStorage.removeItem(K.AD);}
-      renderAdBanner();
-    }
-    if(d.hasOwnProperty('searchPlaceholder')){
-      const sp=d.searchPlaceholder||'Search food/restaurant';
-      localStorage.setItem('tsearch1',sp);
-      const si=document.getElementById('searchInput');if(si)si.placeholder=sp;
-    }
+    _safeApply('ann',()=>{ if(d.ann&&Array.isArray(d.ann)&&d.ann.length>0){localStorage.setItem(K.ANN,JSON.stringify(d.ann));renderTicker();} });
+    _safeApply('ad',()=>{
+      if(d.hasOwnProperty('ad')){
+        if(d.ad){localStorage.setItem(K.AD,JSON.stringify(d.ad));}
+        else{localStorage.removeItem(K.AD);}
+        renderAdBanner();
+      }
+    });
+    _safeApply('searchPlaceholder',()=>{
+      if(d.hasOwnProperty('searchPlaceholder')){
+        const sp=d.searchPlaceholder||'Search food/restaurant';
+        localStorage.setItem('tsearch1',sp);
+        const si=document.getElementById('searchInput');if(si)si.placeholder=sp;
+      }
+    });
   }
   // Skip heavy data updates if nothing changed since last poll
   if(d.updatedAt<=gsLastTs)return;
   gsLastTs=d.updatedAt;
-  checkAutoRefresh(d.updatedAt);
-  if(d.foods&&Array.isArray(d.foods)&&d.foods.length>0){
-    foods=d.foods;nextId=Math.max(...foods.map(f=>f.id))+1;
-    localStorage.setItem(K.FOODS,JSON.stringify(foods));
-    renderCats();renderFoods();if(IS_ADMIN&&loggedIn)renderFoodList();
-  }
-  if(d.disc&&d.disc.min){disc=d.disc;localStorage.setItem(K.DISC,JSON.stringify(disc));renderDiscBanner();}
-  if(d.combos&&Array.isArray(d.combos)){localStorage.setItem(K.COMBOS,JSON.stringify(d.combos));renderPackages();renderCombosCustomer();if(IS_ADMIN&&loggedIn)renderComboAdmin();}
-  if(d.cats&&Array.isArray(d.cats)&&d.cats.length>0){localStorage.setItem(K.CATS,JSON.stringify(d.cats));renderCats();if(IS_ADMIN&&loggedIn){renderCatManager();updateCatSelect();}}
-  if(d.promos&&Array.isArray(d.promos)){localStorage.setItem(K.PROMOS,JSON.stringify(d.promos));renderPromos();}
-  if(d.hours){localStorage.setItem(K.HOURS,JSON.stringify(d.hours));renderHours();}
-  if(d.hasOwnProperty('logo')){
-    if(d.logo){localStorage.setItem(K.LOGO,d.logo);applyLogo(d.logo);}
-    else{localStorage.removeItem(K.LOGO);applyLogo(null);}
-  }
-  if(IS_ADMIN&&loggedIn)renderAdBannerAdmin();
-  if(d.dboys&&Array.isArray(d.dboys)){localStorage.setItem(K.DBOYS,JSON.stringify(d.dboys));}
-  if(d.restaurants&&Array.isArray(d.restaurants)){
-    localStorage.setItem(K.RESTAURANTS,JSON.stringify(d.restaurants));
-    if(IS_ADMIN&&loggedIn)renderRestaurantRegistry();
-    // Re-render dboy orders so restaurant blocks get updated phone numbers
-    if(IS_DBOY&&dbOrdersCache.length)dbRenderOrders(dbOrdersCache);
-  }
-  if(d.hasOwnProperty('reply')){
-    if(d.reply){localStorage.setItem(K.REPLY,d.reply);}
-    else{localStorage.removeItem(K.REPLY);}
-  }
-  if(d.hasOwnProperty('qrpay')){
-    if(d.qrpay){localStorage.setItem(K.QRPAY,d.qrpay);loadQRPayments();}
-    else{localStorage.removeItem(K.QRPAY);loadQRPayments();}
-  }
+  _safeApply('checkAutoRefresh',()=>checkAutoRefresh(d.updatedAt));
+  _safeApply('foods',()=>{
+    if(d.foods&&Array.isArray(d.foods)&&d.foods.length>0){
+      foods=d.foods;nextId=Math.max(...foods.map(f=>f.id))+1;
+      localStorage.setItem(K.FOODS,JSON.stringify(foods));
+      _foodsIsFallback=false;
+      renderCats();renderFoods();if(IS_ADMIN&&loggedIn)renderFoodList();
+    }
+  });
+  _safeApply('disc',()=>{ if(d.disc&&d.disc.min){disc=d.disc;localStorage.setItem(K.DISC,JSON.stringify(disc));renderDiscBanner();} });
+  _safeApply('combos',()=>{ if(d.combos&&Array.isArray(d.combos)){localStorage.setItem(K.COMBOS,JSON.stringify(d.combos));renderPackages();renderCombosCustomer();if(IS_ADMIN&&loggedIn)renderComboAdmin();} });
+  _safeApply('cats',()=>{ if(d.cats&&Array.isArray(d.cats)&&d.cats.length>0){localStorage.setItem(K.CATS,JSON.stringify(d.cats));renderCats();if(IS_ADMIN&&loggedIn){renderCatManager();updateCatSelect();}} });
+  _safeApply('promos',()=>{ if(d.promos&&Array.isArray(d.promos)){localStorage.setItem(K.PROMOS,JSON.stringify(d.promos));renderPromos();} });
+  _safeApply('hours',()=>{ if(d.hours){localStorage.setItem(K.HOURS,JSON.stringify(d.hours));renderHours();} });
+  _safeApply('logo',()=>{
+    if(d.hasOwnProperty('logo')){
+      if(d.logo){localStorage.setItem(K.LOGO,d.logo);applyLogo(d.logo);}
+      else{localStorage.removeItem(K.LOGO);applyLogo(null);}
+    }
+    if(IS_ADMIN&&loggedIn)renderAdBannerAdmin();
+  });
+  _safeApply('dboys',()=>{ if(d.dboys&&Array.isArray(d.dboys)){localStorage.setItem(K.DBOYS,JSON.stringify(d.dboys));} });
+  _safeApply('restaurants',()=>{
+    if(d.restaurants&&Array.isArray(d.restaurants)){
+      localStorage.setItem(K.RESTAURANTS,JSON.stringify(d.restaurants));
+      if(IS_ADMIN&&loggedIn)renderRestaurantRegistry();
+      // Re-render dboy orders so restaurant blocks get updated phone numbers
+      if(IS_DBOY&&dbOrdersCache.length)dbRenderOrders(dbOrdersCache);
+    }
+  });
+  _safeApply('reply',()=>{
+    if(d.hasOwnProperty('reply')){
+      if(d.reply){localStorage.setItem(K.REPLY,d.reply);}
+      else{localStorage.removeItem(K.REPLY);}
+    }
+  });
+  _safeApply('qrpay',()=>{
+    if(d.hasOwnProperty('qrpay')){
+      if(d.qrpay){localStorage.setItem(K.QRPAY,d.qrpay);loadQRPayments();}
+      else{localStorage.removeItem(K.QRPAY);loadQRPayments();}
+    }
+  });
   // ── Sync restaurant order log and trip log from dboy devices ──
-  if(d.restOrders&&typeof d.restOrders==='object'){
-    // Merge: combine local + remote, keeping all entries per day/restaurant
-    // — but never resurrect a day's data that predates when it was
-    // intentionally deleted (timestamped tombstone), nor an individually
-    // deleted/cancelled order.
-    const local=JSON.parse(localStorage.getItem(K.REST_ORDERS)||'{}');
-    const localTomb=JSON.parse(localStorage.getItem(K.DELETED_REST_DAYS)||'[]');
-    const combinedTomb=_mergeTombLists(localTomb,d.deletedRestDays);
-    const remoteOrderTomb=Array.isArray(d.deletedOrderIds)?d.deletedOrderIds:[];
-    const localOrderTomb=JSON.parse(localStorage.getItem(K.DELETED_ORDER_IDS)||'[]');
-    const orderTomb=Array.from(new Set([...localOrderTomb,...remoteOrderTomb]));
-    const merged=mergeLogObjects(local,d.restOrders,combinedTomb,orderTomb);
-    localStorage.setItem(K.REST_ORDERS,JSON.stringify(merged));
-    localStorage.setItem(K.DELETED_REST_DAYS,JSON.stringify(combinedTomb));
-    if(remoteOrderTomb.length){
-      localStorage.setItem(K.DELETED_ORDER_IDS,JSON.stringify(orderTomb));
+  _safeApply('restOrders',()=>{
+    if(d.restOrders&&typeof d.restOrders==='object'){
+      // Merge: combine local + remote, keeping all entries per day/restaurant
+      // — but never resurrect a day's data that predates when it was
+      // intentionally deleted (timestamped tombstone), nor an individually
+      // deleted/cancelled order.
+      const local=JSON.parse(localStorage.getItem(K.REST_ORDERS)||'{}');
+      const localTomb=JSON.parse(localStorage.getItem(K.DELETED_REST_DAYS)||'[]');
+      const combinedTomb=_mergeTombLists(localTomb,d.deletedRestDays);
+      const remoteOrderTomb=Array.isArray(d.deletedOrderIds)?d.deletedOrderIds:[];
+      const localOrderTomb=JSON.parse(localStorage.getItem(K.DELETED_ORDER_IDS)||'[]');
+      const orderTomb=Array.from(new Set([...localOrderTomb,...remoteOrderTomb]));
+      const merged=mergeLogObjects(local,d.restOrders,combinedTomb,orderTomb);
+      localStorage.setItem(K.REST_ORDERS,JSON.stringify(merged));
+      localStorage.setItem(K.DELETED_REST_DAYS,JSON.stringify(combinedTomb));
+      if(remoteOrderTomb.length){
+        localStorage.setItem(K.DELETED_ORDER_IDS,JSON.stringify(orderTomb));
+      }
+      if(IS_ADMIN&&loggedIn){
+        renderDailyRestaurantSummary();
+      }
     }
-    if(IS_ADMIN&&loggedIn){
-      renderDailyRestaurantSummary();
-    }
-  }
+  });
   // ── Flagged customers list (admin/dboy 'problem customer' warnings) ──
-  if(Array.isArray(d.flaggedCustomers)){
-    localStorage.setItem(K.FLAGGED,JSON.stringify(d.flaggedCustomers));
-    if(IS_ADMIN&&loggedIn)renderFlaggedList();
-  }
-  if(Array.isArray(d.locations)){
-    localStorage.setItem(K.LOCATIONS,JSON.stringify(d.locations));
-    if(IS_ADMIN&&loggedIn)renderLocationsAdmin();
-    if(IS_CUSTOMER)resolveCustomerLocation();
-  }
-  if(d.tripLog&&typeof d.tripLog==='object'){
-    const local=JSON.parse(localStorage.getItem(K_TRIP_LOG)||'{}');
-    const merged=mergeLogObjects(local,d.tripLog);
-    localStorage.setItem(K_TRIP_LOG,JSON.stringify(merged));
-  }
+  _safeApply('flaggedCustomers',()=>{
+    if(Array.isArray(d.flaggedCustomers)){
+      localStorage.setItem(K.FLAGGED,JSON.stringify(d.flaggedCustomers));
+      if(IS_ADMIN&&loggedIn)renderFlaggedList();
+    }
+  });
+  _safeApply('locations',()=>{
+    if(Array.isArray(d.locations)){
+      localStorage.setItem(K.LOCATIONS,JSON.stringify(d.locations));
+      if(IS_ADMIN&&loggedIn)renderLocationsAdmin();
+      if(IS_CUSTOMER)resolveCustomerLocation();
+    }
+  });
+  _safeApply('tripLog',()=>{
+    if(d.tripLog&&typeof d.tripLog==='object'){
+      const local=JSON.parse(localStorage.getItem(K_TRIP_LOG)||'{}');
+      const merged=mergeLogObjects(local,d.tripLog);
+      localStorage.setItem(K_TRIP_LOG,JSON.stringify(merged));
+    }
+  });
   // ── App activity: installs/last-seen + delivery boy login log ──
-  if(d.appActivity&&typeof d.appActivity==='object'){
-    const local=getAppDevices();
-    const merged=_mergeAppDevices(d.appActivity,local);
-    localStorage.setItem(K.APP_ACTIVITY,JSON.stringify(merged));
-    if(IS_ADMIN&&loggedIn)renderAppActivity();
-  }
-  if(Array.isArray(d.dboyLogins)){
-    const local=getDboyLoginLog();
-    const merged=_mergeDboyLoginLogs(d.dboyLogins,local);
-    localStorage.setItem(K.DBOY_LOGINS,JSON.stringify(merged));
-    if(IS_ADMIN&&loggedIn)renderAppActivity();
-  }
+  _safeApply('appActivity',()=>{
+    if(d.appActivity&&typeof d.appActivity==='object'){
+      const local=getAppDevices();
+      const merged=_mergeAppDevices(d.appActivity,local);
+      localStorage.setItem(K.APP_ACTIVITY,JSON.stringify(merged));
+      if(IS_ADMIN&&loggedIn)renderAppActivity();
+    }
+  });
+  _safeApply('dboyLogins',()=>{
+    if(Array.isArray(d.dboyLogins)){
+      const local=getDboyLoginLog();
+      const merged=_mergeDboyLoginLogs(d.dboyLogins,local);
+      localStorage.setItem(K.DBOY_LOGINS,JSON.stringify(merged));
+      if(IS_ADMIN&&loggedIn)renderAppActivity();
+    }
+  });
 }
 
+// True only when `foods` is still the hardcoded starter list because
+// nothing real has been confirmed yet (empty localStorage AND no cloud
+// fetch has landed). Cleared the moment either localStorage or the cloud
+// hands us real data. See syncToGS() — this is what stops a fresh/emptied
+// browser session from ever overwriting real menu data in the cloud with
+// these placeholder items before it's caught up.
+let _foodsIsFallback=false;
 function load(){
-  try{const s=localStorage.getItem(K.FOODS);foods=(s&&JSON.parse(s).length>0)?JSON.parse(s):DF;}catch{foods=DF;}
+  try{
+    const s=localStorage.getItem(K.FOODS);
+    if(s&&JSON.parse(s).length>0){ foods=JSON.parse(s); _foodsIsFallback=false; }
+    else { foods=DF; _foodsIsFallback=true; }
+  }catch{ foods=DF; _foodsIsFallback=true; }
   try{const s=localStorage.getItem(K.DISC);disc=s?JSON.parse(s):{min:2,pct:1.5,max:15};}catch{disc={min:2,pct:1.5,max:15};}
   nextId=foods.length?Math.max(...foods.map(f=>f.id))+1:1;
   const sp=localStorage.getItem('tsearch1');if(sp){const si=document.getElementById('searchInput');if(si)si.placeholder=sp;}
@@ -2828,75 +2933,6 @@ function removeQRPay(){
 
 // ══ ADMIN LIVE ORDERS (from Supabase) ═════════════════
 let _adminOrdersPollTimer=null;
-async function adminRefreshOrders(){
-  if(!IS_ADMIN||!loggedIn) return;
-  const orders=await sbGetOrders();
-  const el=document.getElementById('adminLiveOrders');
-  const badge=document.getElementById('liveOrdersBadge');
-  if(!el) return;
-  const active=orders.filter(o=>o.status!=='delivered'&&o.status!=='cancelled');
-  const delivered=orders.filter(o=>o.status==='delivered'||o.status==='cancelled');
-  if(!badge) return;
-  if(active.length){badge.textContent=active.length;badge.style.display='inline';}
-  else{badge.style.display='none';}
-  if(!orders.length){
-    el.innerHTML='<div class="empty"><span>📭</span><p style="font-size:.85rem">No orders yet. Orders placed by customers will appear here.</p></div>';
-    return;
-  }
-  const statusLabel={new:'🆕 New',confirmed:'✅ Confirmed',preparing:'👨‍🍳 Preparing',ready:'📦 Ready',picked:'🛵 On the Way',delivered:'🎉 Delivered',cancelled:'🚫 Cancelled'};
-  const statusColor={new:'#E84545',confirmed:'#8e44ad',preparing:'#e67e22',ready:'#2980b9',picked:'#1565c0',delivered:'#27ae60',cancelled:'#888'};
-  const nextStatus={new:'confirmed',confirmed:'preparing',preparing:'ready',ready:'picked',picked:'delivered',delivered:null,cancelled:null};
-  const nextLabel={new:'✅ Confirm',confirmed:'👨‍🍳 Preparing',preparing:'📦 Mark Ready',ready:'🛵 Out for Delivery',picked:'🎉 Mark Delivered',delivered:null,cancelled:null};
-  const t=new Date();
-  function orderCard(o){
-    const ot=new Date(o.created_at);
-    const mins=Math.round((t-ot)/60000);
-    const timeStr=mins<1?'Just now':mins<60?mins+'m ago':(Math.floor(mins/60)+'h '+(mins%60)+'m ago');
-    const restMatches=(o.message||'').match(/🏪 \*([^*\n]+)\*/g)||[];
-    const restTags=restMatches.length?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin:.3rem 0">${restMatches.map(r=>`<span style="font-size:.65rem;background:#1a1a2e;color:#fff;border-radius:50px;padding:2px 8px;font-weight:700">${r.replace(/\*/g,'')}</span>`).join('')}</div>`:'';
-    const stages=['new','confirmed','preparing','ready','picked','delivered'];
-    const si=stages.indexOf(o.status);
-    const progPct=Math.round(((si+1)/stages.length)*100);
-    const progBar=`<div style="margin:.4rem 0 .5rem;"><div style="display:flex;justify-content:space-between;font-size:.62rem;color:var(--muted);margin-bottom:3px"><span>${statusLabel[o.status]||o.status}</span><span>${progPct}%</span></div><div style="height:5px;background:#f0f0f0;border-radius:3px;overflow:hidden"><div style="height:100%;width:${progPct}%;background:linear-gradient(90deg,${statusColor[o.status]||'var(--p)'},${statusColor[o.status]||'var(--p)'}88);border-radius:3px;transition:width .5s"></div></div></div>`;
-    let dboyHtml='';
-    if(o.accepted_by){dboyHtml=`<div class="alo-dboy">🛵 ${o.accepted_by}</div>`;}
-    const distInfo=getDistanceInfoForOrder(o);
-    const distHtml=distInfo?`<div style="font-size:.75rem;color:#1565c0;font-weight:700;margin:.3rem 0;background:#e3f2fd;border-radius:6px;padding:4px 8px;display:inline-block">📍 ${distInfo.km} km · 🛵 ~${distInfo.timeStr} ride</div>`:'';
-    const ns=nextStatus[o.status];
-    const actionBtn=o.status==='cancelled'?'<span style="font-size:.75rem;color:#888;font-weight:700">🚫 Cancelled by customer</span>':(ns?`<button onclick="adminUpdateStatus('${o.id}','${ns}','${(o.accepted_by||'').replace(/'/g,"\\'")}',this)" style="background:${statusColor[ns]};color:#fff;border:none;border-radius:9px;padding:7px 13px;font-family:'DM Sans',sans-serif;font-weight:800;font-size:.78rem;cursor:pointer;flex:1">${nextLabel[o.status]}</button>`:'<span style="font-size:.75rem;color:var(--g);font-weight:700">✅ Completed</span>');
-    const cancelBtn=(o.status==='new'||o.status==='confirmed')?`<button onclick="if(confirm('Cancel this order?'))adminUpdateStatus('${o.id}','cancelled','',this)" style="background:#f5f5f5;color:#888;border:1.5px solid #ddd;border-radius:9px;padding:7px 10px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.72rem;cursor:pointer">🚫</button>`:'';
-    return `<div class="alo-card ${o.status}" style="border-left-color:${statusColor[o.status]||'var(--p)'}${o.status==='new'?';box-shadow:0 0 0 2px #E84545':''}">
-      <div class="alo-top">
-        <div><div class="alo-id">#${o.id.slice(-6).toUpperCase()}</div><div class="alo-time">${timeStr}</div></div>
-        <div style="display:flex;align-items:center;gap:6px">
-          <span class="alo-status" style="background:${statusColor[o.status]+'22'};color:${statusColor[o.status]};font-size:.65rem;border-radius:50px;padding:3px 9px;font-weight:800">${statusLabel[o.status]||o.status}</span>
-          <button onclick="adminDeleteOrder('${o.id}')" style="background:#fee2e2;border:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.7rem;color:#dc2626;font-weight:700">🗑</button>
-          <button onclick="flagCustomerPrompt('${(o.customer_name||'').replace(/'/g,"\\'")}','${(o.customer_phone||'').replace(/'/g,"\\'")}')" style="background:#fff3e0;border:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.7rem;color:#e65100;font-weight:700" title="Flag this customer">🚩</button>
-        </div>
-      </div>
-      ${progBar}
-      <div class="alo-cust">👤 ${o.customer_name||'—'}</div>
-      <div class="alo-phone">📞 ${o.customer_phone||'—'}${o.customer_addr?' · 🏠 '+o.customer_addr:''}</div>
-      ${o.for_other?'<div style="font-size:.7rem;font-weight:800;color:#e65100;background:#fff3e0;border-radius:6px;padding:3px 8px;margin:.2rem 0;display:inline-block">👥 For someone else — confirm address</div>':''}
-      ${(function(){const fl=findFlag(o.customer_phone);return fl?`<div style="font-size:.72rem;font-weight:800;color:#fff;background:#dc2626;border-radius:6px;padding:4px 9px;margin:.3rem 0;display:inline-block">🚩 FLAGGED CUSTOMER — ${fl.reason}</div>`:'';})()}
-      ${restTags}
-      ${distHtml}
-      ${dboyHtml}
-      <div class="alo-total" style="margin-bottom:.5rem">Rs.${o.total||0}${o.status==='cancelled'?'':' · '+(o.payment||'Cash')}</div>
-      <div style="display:flex;align-items:center;gap:6px">${actionBtn}${cancelBtn}</div>
-    </div>`;
-  }
-  let html='';
-  if(active.length){
-    html+=`<div style="font-size:.72rem;font-weight:800;color:var(--p);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem">🔴 Active Orders (${active.length})</div>`;
-    html+=active.map(orderCard).join('');
-  }
-  if(delivered.length){
-    html+=`<div style="font-size:.72rem;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:.5px;margin:.9rem 0 .5rem">✅ Delivered / 🚫 Cancelled (${delivered.length})</div>`;
-    html+=delivered.map(orderCard).join('');
-  }
-  el.innerHTML=html;
-}
 function adminStartOrdersPolling(){
   _adminFirstPoll=true;
   adminRefreshOrdersForced();
@@ -2970,69 +3006,93 @@ function showAdminNewOrderBanner(count){
 async function adminRefreshOrdersForced(){
   const el=document.getElementById('adminLiveOrders');
   if(el&&!el.innerHTML.includes('alo-card'))el.innerHTML='<div class="empty"><span>⏳</span><p style="font-size:.85rem">Refreshing…</p></div>';
-  const orders=await sbGetOrders();
+  let orders=[];
+  try{
+    orders=await sbGetOrders();
+  }catch(e){
+    console.error('adminRefreshOrdersForced: fetch failed:',e);
+    if(el)el.innerHTML='<div class="empty"><span>⚠️</span><p style="font-size:.85rem">Could not load orders — check your connection.</p><button onclick="adminRefreshOrdersForced()" style="margin-top:.5rem;background:var(--p);color:#fff;border:none;border-radius:50px;padding:6px 16px;font-weight:700;cursor:pointer">🔄 Try Again</button></div>';
+    return;
+  }
   const badge=document.getElementById('liveOrdersBadge');
   if(!el)return;
+  try{
+    // ── Detect new orders → sound + banner ──
+    const newOrders=orders.filter(o=>o.status==='new'&&!_adminKnownOrderIds.has(o.id));
+    if(newOrders.length>0&&!_adminFirstPoll){
+      playAdminOrderSound();
+      showAdminNewOrderBanner(newOrders.length);
+      showAdminNotif('🔔 '+(newOrders.length>1?newOrders.length+' new orders!':'New order received!'));
+    }
+    _adminFirstPoll=false;
+    orders.forEach(o=>_adminKnownOrderIds.add(o.id));
 
-  // ── Detect new orders → sound + banner ──
-  const newOrders=orders.filter(o=>o.status==='new'&&!_adminKnownOrderIds.has(o.id));
-  if(newOrders.length>0&&!_adminFirstPoll){
-    playAdminOrderSound();
-    showAdminNewOrderBanner(newOrders.length);
-    showAdminNotif('🔔 '+(newOrders.length>1?newOrders.length+' new orders!':'New order received!'));
+    const active=orders.filter(o=>o.status!=='delivered'&&o.status!=='cancelled');
+    const delivered=orders.filter(o=>o.status==='delivered'||o.status==='cancelled');
+    if(badge){if(active.length){badge.textContent=active.length;badge.style.display='inline';}else{badge.style.display='none';}}
+    if(!orders.length){el.innerHTML='<div class="empty"><span>📭</span><p style="font-size:.85rem">No orders yet.</p></div>';return;}
+    const statusLabel={new:'🆕 New',confirmed:'✅ Confirmed',preparing:'👨‍🍳 Preparing',ready:'📦 Ready',picked:'🛵 On the Way',delivered:'🎉 Delivered',cancelled:'🚫 Cancelled'};
+    const statusColor={new:'#E84545',confirmed:'#8e44ad',preparing:'#e67e22',ready:'#2980b9',picked:'#1565c0',delivered:'#27ae60',cancelled:'#888'};
+    const nextStatus={new:'confirmed',confirmed:'preparing',preparing:'ready',ready:'picked',picked:'delivered',delivered:null,cancelled:null};
+    const nextLabel={new:'✅ Confirm',confirmed:'👨‍🍳 Preparing',preparing:'📦 Mark Ready',ready:'🛵 Out for Delivery',picked:'🎉 Mark Delivered',delivered:null,cancelled:null};
+    const t=new Date();
+    function card(o){
+      const oid=o.id||'';
+      const ot=new Date(o.created_at||Date.now());
+      const mins=Math.round((t-ot)/60000);
+      const timeStr=mins<1?'Just now':mins<60?mins+'m ago':(Math.floor(mins/60)+'h '+(mins%60)+'m ago');
+      const restMatches=(o.message||'').match(/🏪 \*([^*\n]+)\*/g)||[];
+      const restTags=restMatches.length?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin:.3rem 0">${restMatches.map(r=>`<span style="font-size:.65rem;background:#1a1a2e;color:#fff;border-radius:50px;padding:2px 8px;font-weight:700">${r.replace(/\*/g,'')}</span>`).join('')}</div>`:'';
+      const stages=['new','confirmed','preparing','ready','picked','delivered'];
+      const si=stages.indexOf(o.status);
+      const progPct=Math.round(((si+1)/stages.length)*100);
+      const progBar=`<div style="margin:.4rem 0 .5rem;"><div style="display:flex;justify-content:space-between;font-size:.62rem;color:var(--muted);margin-bottom:3px"><span>${statusLabel[o.status]||o.status}</span><span>${progPct}%</span></div><div style="height:5px;background:#f0f0f0;border-radius:3px;overflow:hidden"><div style="height:100%;width:${progPct}%;background:linear-gradient(90deg,${statusColor[o.status]||'var(--p)'},${statusColor[o.status]||'var(--p)'}88);border-radius:3px;transition:width .5s"></div></div></div>`;
+      let dboyHtml='';
+      if(o.accepted_by){dboyHtml=`<div class="alo-dboy">🛵 ${o.accepted_by}</div>`;}
+      let distHtml='';
+      try{
+        const distInfo=getDistanceInfoForOrder(o);
+        distHtml=distInfo?`<div style="font-size:.75rem;color:#1565c0;font-weight:700;margin:.3rem 0;background:#e3f2fd;border-radius:6px;padding:4px 8px;display:inline-block">📍 ${distInfo.km} km · 🛵 ~${distInfo.timeStr} ride</div>`:'';
+      }catch(e){console.error('card: distance calc failed for order',oid,e);}
+      const ns=nextStatus[o.status];
+      const actionBtn=o.status==='cancelled'?'<span style="font-size:.75rem;color:#888;font-weight:700">🚫 Cancelled by customer</span>':(ns?`<button onclick="adminUpdateStatus('${oid}','${ns}','${(o.accepted_by||'').replace(/'/g,"\\'")}',this)" style="background:${statusColor[ns]};color:#fff;border:none;border-radius:9px;padding:7px 13px;font-family:'DM Sans',sans-serif;font-weight:800;font-size:.78rem;cursor:pointer;flex:1">${nextLabel[o.status]}</button>`:'<span style="font-size:.75rem;color:var(--g);font-weight:700">✅ Completed</span>');
+      const cancelBtn=(o.status==='new'||o.status==='confirmed')?`<button onclick="if(confirm('Cancel this order?'))adminUpdateStatus('${oid}','cancelled','',this)" style="background:#f5f5f5;color:#888;border:1.5px solid #ddd;border-radius:9px;padding:7px 10px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.72rem;cursor:pointer">🚫</button>`:'';
+      let flagHtml='';
+      try{ const fl=findFlag(o.customer_phone); flagHtml=fl?`<div style="font-size:.72rem;font-weight:800;color:#fff;background:#dc2626;border-radius:6px;padding:4px 9px;margin:.3rem 0;display:inline-block">🚩 FLAGGED CUSTOMER — ${fl.reason}</div>`:''; }catch(e){console.error('card: flag lookup failed for order',oid,e);}
+      return `<div class="alo-card ${o.status}" style="border-left-color:${statusColor[o.status]||'var(--p)'}${o.status==='new'?';box-shadow:0 0 0 2px #E84545':''}">
+        <div class="alo-top"><div><div class="alo-id">#${(oid.slice?oid.slice(-6):oid).toString().toUpperCase()}</div><div class="alo-time">${timeStr}</div></div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="alo-status" style="background:${statusColor[o.status]+'22'};color:${statusColor[o.status]};font-size:.65rem;border-radius:50px;padding:3px 9px;font-weight:800">${statusLabel[o.status]||o.status}</span>
+          <button onclick="adminDeleteOrder('${oid}')" style="background:#fee2e2;border:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.7rem;color:#dc2626;font-weight:700">🗑</button>
+            <button onclick="flagCustomerPrompt('${(o.customer_name||'').replace(/'/g,"\\'")}','${(o.customer_phone||'').replace(/'/g,"\\'")}')" style="background:#fff3e0;border:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.7rem;color:#e65100;font-weight:700" title="Flag this customer">🚩</button>
+        </div></div>
+        ${progBar}
+        <div class="alo-cust">👤 ${o.customer_name||'—'}</div>
+        <div class="alo-phone">📞 ${o.customer_phone||'—'}${o.customer_addr?' · 🏠 '+o.customer_addr:''}</div>
+        ${o.for_other?'<div style="font-size:.7rem;font-weight:800;color:#e65100;background:#fff3e0;border-radius:6px;padding:3px 8px;margin:.2rem 0;display:inline-block">👥 For someone else — confirm address</div>':''}
+        ${flagHtml}
+        ${restTags}
+        ${distHtml}
+        ${dboyHtml}
+        <div class="alo-total" style="margin-bottom:.5rem">Rs.${o.total||0}${o.status==='cancelled'?'':' · '+(o.payment||'Cash')}</div>
+        <div style="display:flex;align-items:center;gap:6px">${actionBtn}${cancelBtn}</div>
+      </div>`;
+    }
+    // Render each card in isolation — if one order's data is malformed
+    // enough to still throw despite the guards above, skip just that card
+    // instead of losing the entire list.
+    function safeCard(o){
+      try{ return card(o); }
+      catch(e){ console.error('adminRefreshOrdersForced: failed rendering order',o&&o.id,e); return ''; }
+    }
+    let html='';
+    if(active.length){html+=`<div style="font-size:.72rem;font-weight:800;color:var(--p);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem">🔴 Active Orders (${active.length})</div>`;html+=active.map(safeCard).join('');}
+    if(delivered.length){html+=`<div style="font-size:.72rem;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:.5px;margin:.9rem 0 .5rem">✅ Delivered / 🚫 Cancelled (${delivered.length})</div>`;html+=delivered.map(safeCard).join('');}
+    el.innerHTML=html;
+  }catch(e){
+    console.error('adminRefreshOrdersForced: render failed:',e);
+    el.innerHTML='<div class="empty"><span>⚠️</span><p style="font-size:.85rem">Something went wrong showing orders.</p><button onclick="adminRefreshOrdersForced()" style="margin-top:.5rem;background:var(--p);color:#fff;border:none;border-radius:50px;padding:6px 16px;font-weight:700;cursor:pointer">🔄 Try Again</button></div>';
   }
-  _adminFirstPoll=false;
-  orders.forEach(o=>_adminKnownOrderIds.add(o.id));
-
-  const active=orders.filter(o=>o.status!=='delivered'&&o.status!=='cancelled');
-  const delivered=orders.filter(o=>o.status==='delivered'||o.status==='cancelled');
-  if(badge){if(active.length){badge.textContent=active.length;badge.style.display='inline';}else{badge.style.display='none';}}
-  if(!orders.length){el.innerHTML='<div class="empty"><span>📭</span><p style="font-size:.85rem">No orders yet.</p></div>';return;}
-  const statusLabel={new:'🆕 New',confirmed:'✅ Confirmed',preparing:'👨‍🍳 Preparing',ready:'📦 Ready',picked:'🛵 On the Way',delivered:'🎉 Delivered',cancelled:'🚫 Cancelled'};
-  const statusColor={new:'#E84545',confirmed:'#8e44ad',preparing:'#e67e22',ready:'#2980b9',picked:'#1565c0',delivered:'#27ae60',cancelled:'#888'};
-  const nextStatus={new:'confirmed',confirmed:'preparing',preparing:'ready',ready:'picked',picked:'delivered',delivered:null,cancelled:null};
-  const nextLabel={new:'✅ Confirm',confirmed:'👨‍🍳 Preparing',preparing:'📦 Mark Ready',ready:'🛵 Out for Delivery',picked:'🎉 Mark Delivered',delivered:null,cancelled:null};
-  const t=new Date();
-  function card(o){
-    const ot=new Date(o.created_at);
-    const mins=Math.round((t-ot)/60000);
-    const timeStr=mins<1?'Just now':mins<60?mins+'m ago':(Math.floor(mins/60)+'h '+(mins%60)+'m ago');
-    const restMatches=(o.message||'').match(/🏪 \*([^*\n]+)\*/g)||[];
-    const restTags=restMatches.length?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin:.3rem 0">${restMatches.map(r=>`<span style="font-size:.65rem;background:#1a1a2e;color:#fff;border-radius:50px;padding:2px 8px;font-weight:700">${r.replace(/\*/g,'')}</span>`).join('')}</div>`:'';
-    const stages=['new','confirmed','preparing','ready','picked','delivered'];
-    const si=stages.indexOf(o.status);
-    const progPct=Math.round(((si+1)/stages.length)*100);
-    const progBar=`<div style="margin:.4rem 0 .5rem;"><div style="display:flex;justify-content:space-between;font-size:.62rem;color:var(--muted);margin-bottom:3px"><span>${statusLabel[o.status]||o.status}</span><span>${progPct}%</span></div><div style="height:5px;background:#f0f0f0;border-radius:3px;overflow:hidden"><div style="height:100%;width:${progPct}%;background:linear-gradient(90deg,${statusColor[o.status]||'var(--p)'},${statusColor[o.status]||'var(--p)'}88);border-radius:3px;transition:width .5s"></div></div></div>`;
-    let dboyHtml='';
-    if(o.accepted_by){dboyHtml=`<div class="alo-dboy">🛵 ${o.accepted_by}</div>`;}
-    const distInfo=getDistanceInfoForOrder(o);
-    const distHtml=distInfo?`<div style="font-size:.75rem;color:#1565c0;font-weight:700;margin:.3rem 0;background:#e3f2fd;border-radius:6px;padding:4px 8px;display:inline-block">📍 ${distInfo.km} km · 🛵 ~${distInfo.timeStr} ride</div>`:'';
-    const ns=nextStatus[o.status];
-    const actionBtn=o.status==='cancelled'?'<span style="font-size:.75rem;color:#888;font-weight:700">🚫 Cancelled by customer</span>':(ns?`<button onclick="adminUpdateStatus('${o.id}','${ns}','${(o.accepted_by||'').replace(/'/g,"\\'")}',this)" style="background:${statusColor[ns]};color:#fff;border:none;border-radius:9px;padding:7px 13px;font-family:'DM Sans',sans-serif;font-weight:800;font-size:.78rem;cursor:pointer;flex:1">${nextLabel[o.status]}</button>`:'<span style="font-size:.75rem;color:var(--g);font-weight:700">✅ Completed</span>');
-    const cancelBtn=(o.status==='new'||o.status==='confirmed')?`<button onclick="if(confirm('Cancel this order?'))adminUpdateStatus('${o.id}','cancelled','',this)" style="background:#f5f5f5;color:#888;border:1.5px solid #ddd;border-radius:9px;padding:7px 10px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.72rem;cursor:pointer">🚫</button>`:'';
-    return `<div class="alo-card ${o.status}" style="border-left-color:${statusColor[o.status]||'var(--p)'}${o.status==='new'?';box-shadow:0 0 0 2px #E84545':''}">
-      <div class="alo-top"><div><div class="alo-id">#${o.id.slice(-6).toUpperCase()}</div><div class="alo-time">${timeStr}</div></div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <span class="alo-status" style="background:${statusColor[o.status]+'22'};color:${statusColor[o.status]};font-size:.65rem;border-radius:50px;padding:3px 9px;font-weight:800">${statusLabel[o.status]||o.status}</span>
-        <button onclick="adminDeleteOrder('${o.id}')" style="background:#fee2e2;border:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.7rem;color:#dc2626;font-weight:700">🗑</button>
-          <button onclick="flagCustomerPrompt('${(o.customer_name||'').replace(/'/g,"\\'")}','${(o.customer_phone||'').replace(/'/g,"\\'")}')" style="background:#fff3e0;border:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.7rem;color:#e65100;font-weight:700" title="Flag this customer">🚩</button>
-      </div></div>
-      ${progBar}
-      <div class="alo-cust">👤 ${o.customer_name||'—'}</div>
-      <div class="alo-phone">📞 ${o.customer_phone||'—'}${o.customer_addr?' · 🏠 '+o.customer_addr:''}</div>
-      ${o.for_other?'<div style="font-size:.7rem;font-weight:800;color:#e65100;background:#fff3e0;border-radius:6px;padding:3px 8px;margin:.2rem 0;display:inline-block">👥 For someone else — confirm address</div>':''}
-      ${(function(){const fl=findFlag(o.customer_phone);return fl?`<div style="font-size:.72rem;font-weight:800;color:#fff;background:#dc2626;border-radius:6px;padding:4px 9px;margin:.3rem 0;display:inline-block">🚩 FLAGGED CUSTOMER — ${fl.reason}</div>`:'';})()}
-      ${restTags}
-      ${distHtml}
-      ${dboyHtml}
-      <div class="alo-total" style="margin-bottom:.5rem">Rs.${o.total||0}${o.status==='cancelled'?'':' · '+(o.payment||'Cash')}</div>
-      <div style="display:flex;align-items:center;gap:6px">${actionBtn}${cancelBtn}</div>
-    </div>`;
-  }
-  let html='';
-  if(active.length){html+=`<div style="font-size:.72rem;font-weight:800;color:var(--p);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem">🔴 Active Orders (${active.length})</div>`;html+=active.map(card).join('');}
-  if(delivered.length){html+=`<div style="font-size:.72rem;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:.5px;margin:.9rem 0 .5rem">✅ Delivered / 🚫 Cancelled (${delivered.length})</div>`;html+=delivered.map(card).join('');}
-  el.innerHTML=html;
 }
 
 // ══ DELIVERY STATUS MANAGEMENT (existing) ══════════════
@@ -3236,6 +3296,7 @@ async function confirmPaymentAndOrder(){
   
   // Trigger delivery tracking popup for customers
   triggerOrderTracking();
+  startDboyAssignWatcher(_orderObjId);
   
   // Play sound notification for admin
   playNotificationSound();
@@ -3746,15 +3807,19 @@ function renderCats(){const cats=['All',...new Set([...getCats(),...foods.map(f=
 function setCat(c){activeCat=c;renderCats();renderFoods();}
 
 function renderFoods(){
+  renderBranchHeading();
   if(!foods||!foods.length){try{const s=localStorage.getItem(K.FOODS);foods=(s&&JSON.parse(s).length>0)?JSON.parse(s):DF;nextId=Math.max(...foods.map(f=>f.id))+1;}catch{foods=DF;}}
   const q=(document.getElementById('searchInput')||{value:''}).value.toLowerCase().trim();
   const list=foods.filter(f=>{
     const mc=activeCat==='All'||f.cat===activeCat;
-    // Branch filter: admins see everything; customers see items with no
-    // branch assigned (shared/unassigned) plus items matching their
-    // resolved location. If no location has resolved yet, don't filter —
-    // resolveCustomerLocation() re-renders once it has.
-    const matchesLoc=!IS_CUSTOMER||!currentLocation||!f.locationId||f.locationId===currentLocation.id;
+    // Branch filter: customers see items with no branch assigned
+    // (shared/unassigned) plus items matching their GPS-resolved location.
+    // Admins see everything UNLESS they've picked a branch to preview from
+    // the admin-only selector (adminMenuBranchId) — that's for viewing/
+    // testing a specific branch's menu, never shown to real customers.
+    const matchesLoc=IS_CUSTOMER
+      ?(!currentLocation||!f.locationId||f.locationId===currentLocation.id)
+      :(!adminMenuBranchId||!f.locationId||f.locationId===adminMenuBranchId);
     if(!matchesLoc)return false;
     if(!q){return mc;}
     const haystack=(f.name+' '+f.cat+' '+(f.restaurant||'')+' '+(f.desc||'')).toLowerCase();
@@ -4220,7 +4285,7 @@ function showView(name){
   if(name==='history'){renderHistory();}
   if(name==='packages'){renderPackages();}
   if(name==='contact'){renderHours();loadQRPayments();}
-  if(name==='admin'){clearBadge();if(loggedIn){document.getElementById('lscreen').classList.remove('on');document.getElementById('acontent').classList.add('visible');renderFoodList();renderTicker();renderDboys();renderDboyLocations();renderPromos();renderHours();renderDeliveryStatusList();renderCatManager();updateCatSelect();renderComboAdmin();renderAdBanner();renderAdBannerAdmin();adminStartOrdersPolling();renderRestaurantRegistry();renderDailyRestaurantSummary();renderAppActivity();renderFlaggedList();renderCashCollection();}else{document.getElementById('lscreen').classList.add('on');document.getElementById('acontent').classList.remove('visible');}}
+  if(name==='admin'){clearBadge();if(loggedIn){document.getElementById('lscreen').classList.remove('on');document.getElementById('acontent').classList.add('visible');renderBranchHeading();renderFoodList();renderTicker();renderDboys();renderDboyLocations();renderPromos();renderHours();renderDeliveryStatusList();renderCatManager();updateCatSelect();renderComboAdmin();renderAdBanner();renderAdBannerAdmin();adminStartOrdersPolling();renderRestaurantRegistry();renderDailyRestaurantSummary();renderAppActivity();renderFlaggedList();renderCashCollection();}else{document.getElementById('lscreen').classList.add('on');document.getElementById('acontent').classList.remove('visible');}}
 }
 
 // ══ LOGIN ═════════════════════════════════════════════
@@ -4305,7 +4370,13 @@ async function setRecoveryPhrase(){
 function changePw(){const c=document.getElementById('cpw1').value;const n=document.getElementById('cpw2').value;const cf=document.getElementById('cpw3').value;const a=getAuth();if(c!==a.p){showNotif('❌ Wrong password');return;}if(n.length<4){showNotif('Min 4 chars');return;}if(n!==cf){showNotif('No match');return;}a.p=n;saveAuth(a);['cpw1','cpw2','cpw3'].forEach(id=>document.getElementById(id).value='');showNotif('✅ Changed!');}
 
 // ══ ADMIN FOOD ════════════════════════════════════════
-function renderFoodList(){document.getElementById('foodcount').textContent=foods.length;const el=document.getElementById('foodlist');if(!foods.length){el.innerHTML='<div class="empty"><span>📋</span>No items</div>';return;}el.innerHTML=foods.map(f=>{const isAvail=f.available!==false;return `<div class="ai" style="${isAvail?'':'opacity:.6'}"><div class="aiemoji">${f.emoji||'🍽'}</div><div class="aiinfo"><h4>${f.name} <span class="spill">${f.cat}</span>${f.restaurant?` <span style="font-size:.62rem;background:#1a1a2e;color:#fff;border-radius:50px;padding:1px 7px;font-weight:700">🏪 ${f.restaurant}</span>`:''}${isAvail?'':' <span style="font-size:.62rem;background:#c0392b;color:#fff;border-radius:50px;padding:1px 7px;font-weight:700">🚫 SOLD OUT</span>'}</h4><p>Sell Rs.${f.price}${f.buyPrice?' · Buy Rs.'+f.buyPrice+' · Margin Rs.'+(f.price-f.buyPrice):''} · ${f.veg==='veg'?'🟢':'🔴'} · ${f.desc}</p></div><button class="aibtn" onclick="toggleFoodAvailability(${f.id})" style="margin-right:4px" title="${isAvail?'Mark Sold Out':'Mark Available'}">${isAvail?'⏸️':'▶️'}</button><button class="aibtn" onclick="editFood(${f.id})" style="margin-right:4px">✏️</button><button class="aibtn" onclick="delFood(${f.id})">🗑</button></div>`;}).join('');}
+function renderFoodList(){
+  const branch=adminMenuBranchId?getLocationById(adminMenuBranchId):null;
+  const hEl=document.getElementById('foodlistHeading');
+  if(hEl)hEl.innerHTML=(branch?'📋 '+branch.name+' Menu Items':'📋 Menu Items')+' (<span id="foodcount">0</span>)';
+  const list=adminMenuBranchId?foods.filter(f=>!f.locationId||f.locationId===adminMenuBranchId):foods;
+  document.getElementById('foodcount').textContent=list.length;
+  const el=document.getElementById('foodlist');if(!list.length){el.innerHTML='<div class="empty"><span>📋</span>No items'+(branch?' for this branch':'')+'</div>';return;}el.innerHTML=list.map(f=>{const isAvail=f.available!==false;return `<div class="ai" style="${isAvail?'':'opacity:.6'}"><div class="aiemoji">${f.emoji||'🍽'}</div><div class="aiinfo"><h4>${f.name} <span class="spill">${f.cat}</span>${f.restaurant?` <span style="font-size:.62rem;background:#1a1a2e;color:#fff;border-radius:50px;padding:1px 7px;font-weight:700">🏪 ${f.restaurant}</span>`:''}${isAvail?'':' <span style="font-size:.62rem;background:#c0392b;color:#fff;border-radius:50px;padding:1px 7px;font-weight:700">🚫 SOLD OUT</span>'}</h4><p>Sell Rs.${f.price}${f.buyPrice?' · Buy Rs.'+f.buyPrice+' · Margin Rs.'+(f.price-f.buyPrice):''} · ${f.veg==='veg'?'🟢':'🔴'} · ${f.desc}</p></div><button class="aibtn" onclick="toggleFoodAvailability(${f.id})" style="margin-right:4px" title="${isAvail?'Mark Sold Out':'Mark Available'}">${isAvail?'⏸️':'▶️'}</button><button class="aibtn" onclick="editFood(${f.id})" style="margin-right:4px">✏️</button><button class="aibtn" onclick="delFood(${f.id})">🗑</button></div>`;}).join('');}
 function toggleFoodAvailability(id){
   const f=foods.find(x=>x.id===id);
   if(!f)return;
@@ -4693,31 +4764,37 @@ async function renderDboyLocations(){
   const el=document.getElementById('dboyLocationsList');
   if(!el)return;
   el.innerHTML='<p style="font-size:.78rem;color:var(--muted)">⏳ Loading locations…</p>';
-  const locs=await fetchDboyLocations();
-  const dboys=getDboys().filter(d=>d.status==='active');
-  if(!dboys.length){el.innerHTML='<p style="font-size:.78rem;color:var(--muted)">No active delivery boys yet.</p>';return;}
-  const now=Date.now();
-  el.innerHTML=dboys.map(d=>{
-    const loc=locs.find(l=>l.dboy_name&&l.dboy_name.toLowerCase()===d.name.toLowerCase());
-    if(!loc){
+  try{
+    const locs=await fetchDboyLocations();
+    const dboys=getDboys().filter(d=>d.status==='active');
+    if(!dboys.length){el.innerHTML='<p style="font-size:.78rem;color:var(--muted)">No active delivery boys yet.</p>';return;}
+    const now=Date.now();
+    el.innerHTML=dboys.map(d=>{
+      const initial=(d.name||'?')[0].toUpperCase();
+      const loc=locs.find(l=>l.dboy_name&&d.name&&l.dboy_name.toLowerCase()===d.name.toLowerCase());
+      if(!loc){
+        return `<div style="display:flex;align-items:center;gap:10px;padding:.5rem 0;border-bottom:1px solid #d8e8ff">
+          <div style="width:32px;height:32px;border-radius:50%;background:#ccc;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;flex-shrink:0">${initial}</div>
+          <div style="flex:1"><div style="font-weight:700;font-size:.83rem">${d.name||'—'}</div><div style="font-size:.7rem;color:var(--muted)">📵 No location yet — not logged in or location off</div></div>
+        </div>`;
+      }
+      const mins=Math.round((now-new Date(loc.updated_at).getTime())/60000);
+      const fresh=mins<3;
+      const timeStr=mins<1?'just now':mins+'m ago';
+      const accStr=(loc.accuracy!=null&&loc.accuracy!=='')?` · ±${loc.accuracy}m`:'';
       return `<div style="display:flex;align-items:center;gap:10px;padding:.5rem 0;border-bottom:1px solid #d8e8ff">
-        <div style="width:32px;height:32px;border-radius:50%;background:#ccc;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;flex-shrink:0">${d.name[0].toUpperCase()}</div>
-        <div style="flex:1"><div style="font-weight:700;font-size:.83rem">${d.name}</div><div style="font-size:.7rem;color:var(--muted)">📵 No location yet — not logged in or location off</div></div>
+        <div style="width:32px;height:32px;border-radius:50%;background:${fresh?'#27ae60':'#e67e22'};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;flex-shrink:0">${initial}</div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:.83rem">${d.name||'—'} ${fresh?'🟢':'🟡'}</div>
+          <div style="font-size:.7rem;color:var(--muted)">Updated ${timeStr}${accStr}</div>
+        </div>
+        <button onclick="dbOpenLocationMap('${loc.lat}','${loc.lng}')" style="background:#1565c0;color:#fff;border:none;border-radius:8px;padding:7px 12px;cursor:pointer;font-size:.75rem;font-weight:700;white-space:nowrap">🗺️ Map</button>
       </div>`;
-    }
-    const mins=Math.round((now-new Date(loc.updated_at).getTime())/60000);
-    const fresh=mins<3;
-    const timeStr=mins<1?'just now':mins+'m ago';
-    const accStr=(loc.accuracy!=null&&loc.accuracy!=='')?` · ±${loc.accuracy}m`:'';
-    return `<div style="display:flex;align-items:center;gap:10px;padding:.5rem 0;border-bottom:1px solid #d8e8ff">
-      <div style="width:32px;height:32px;border-radius:50%;background:${fresh?'#27ae60':'#e67e22'};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;flex-shrink:0">${d.name[0].toUpperCase()}</div>
-      <div style="flex:1">
-        <div style="font-weight:700;font-size:.83rem">${d.name} ${fresh?'🟢':'🟡'}</div>
-        <div style="font-size:.7rem;color:var(--muted)">Updated ${timeStr}${accStr}</div>
-      </div>
-      <button onclick="dbOpenLocationMap('${loc.lat}','${loc.lng}')" style="background:#1565c0;color:#fff;border:none;border-radius:8px;padding:7px 12px;cursor:pointer;font-size:.75rem;font-weight:700;white-space:nowrap">🗺️ Map</button>
-    </div>`;
-  }).join('');
+    }).join('');
+  }catch(e){
+    console.error('renderDboyLocations failed:',e);
+    el.innerHTML='<p style="font-size:.78rem;color:var(--muted)">⚠️ Could not load locations right now.</p>';
+  }
 }
 function dbOpenLocationMap(lat,lng){
   window.open('https://maps.google.com/?q='+lat+','+lng,'_blank');
@@ -4777,10 +4854,16 @@ async function loadReports(){
   const dEl=document.getElementById('dboyStatsBox');
   if(aEl)aEl.innerHTML='<p style="font-size:.8rem;color:var(--muted)">⏳ Loading…</p>';
   if(dEl)dEl.innerHTML='<p style="font-size:.8rem;color:var(--muted)">⏳ Loading…</p>';
-  const orders=await sbGetOrdersRange(30);
-  renderAnalytics(orders);
-  renderDboyStats(orders);
-  renderRestaurantMonthlySheets();
+  try{
+    const orders=await sbGetOrdersRange(30);
+    try{ renderAnalytics(orders); }catch(e){ console.error('renderAnalytics failed:',e); if(aEl)aEl.innerHTML='<p style="font-size:.8rem;color:var(--muted)">⚠️ Could not load sales analytics.</p>'; }
+    try{ renderDboyStats(orders); }catch(e){ console.error('renderDboyStats failed:',e); if(dEl)dEl.innerHTML='<p style="font-size:.8rem;color:var(--muted)">⚠️ Could not load delivery stats.</p>'; }
+    renderRestaurantMonthlySheets();
+  }catch(e){
+    console.error('loadReports failed:',e);
+    if(aEl)aEl.innerHTML='<p style="font-size:.8rem;color:var(--muted)">⚠️ Could not load reports — check your connection and try Refresh again.</p>';
+    if(dEl)dEl.innerHTML='';
+  }
 }
 function renderAnalytics(orders){
   const el=document.getElementById('analyticsBox');
@@ -4917,6 +5000,18 @@ function populateRestaurantDatalist(){
   if(!dl)return;
   dl.innerHTML=getRestaurants().map(r=>`<option value="${r.name.replace(/"/g,'&quot;')}">`).join('');
 }
+function _relTime(ts){
+  if(!ts)return '—';
+  const diffMs=Date.now()-ts;
+  const mins=Math.floor(diffMs/60000);
+  if(mins<1)return 'just now';
+  if(mins<60)return mins+'m ago';
+  const hrs=Math.floor(mins/60);
+  if(hrs<24)return hrs+'h ago';
+  const days=Math.floor(hrs/24);
+  if(days<30)return days+'d ago';
+  return Math.floor(days/30)+'mo ago';
+}
 function renderAppActivity(){
   const el=document.getElementById('appActivityBox');
   if(!el)return;
@@ -4929,39 +5024,40 @@ function renderAppActivity(){
     else byDboy[l.name].fails++;
   });
   const dboyRows=Object.entries(byDboy).sort((a,b)=>b[1].lastLogin-a[1].lastLogin).map(([name,info])=>{
-    const daysAgo=info.lastLogin?Math.floor((Date.now()-info.lastLogin)/86400000):null;
-    const lastStr=info.lastLogin?(daysAgo===0?'today':daysAgo===1?'yesterday':daysAgo+' days ago'):'never';
     return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:.8rem">
       <span><strong>${name}</strong> · ${info.total} login${info.total!==1?'s':''}${info.fails?` · ${info.fails} failed`:''}</span>
-      <span style="color:${daysAgo!==null&&daysAgo<=2?'#2e7d32':'#888'}">Last: ${lastStr}</span>
+      <span style="color:${info.lastLogin&&(Date.now()-info.lastLogin)<=2*86400000?'#2e7d32':'#888'}">Last: ${_relTime(info.lastLogin)}</span>
     </div>`;
   }).join('')||'<p style="font-size:.8rem;color:var(--muted)">No logins recorded yet.</p>';
-  const deviceList=Object.values(devices).sort((a,b)=>(b.lastSeen||0)-(a.lastSeen||0));
+  // Newest-active-first — every real visitor counts here, not just ones
+  // who added the app to their home screen, since "installed" is a much
+  // narrower (and much rarer) thing than "actually used the site".
+  const deviceList=Object.values(devices).filter(d=>d.appType==='customer').sort((a,b)=>(b.lastSeen||b.firstSeen||0)-(a.lastSeen||a.firstSeen||0));
   const deviceRows=deviceList.map(dev=>{
-    const label=dev.name?`${dev.name}${dev.phone?' · '+dev.phone:''}`:'(unnamed device)';
-    const typeTag=dev.appType==='dboy'?'🛵 Delivery':'🧑 Customer';
-    const daysAgo=dev.lastSeenStandalone?Math.floor((Date.now()-dev.lastSeenStandalone)/86400000):null;
-    let statusHtml;
-    if(!dev.installed) statusHtml=`<span style="color:#888">Not installed (browser only)</span>`;
-    else if(daysAgo!==null&&daysAgo<=14) statusHtml=`<span style="color:#2e7d32;font-weight:700">🟢 Active</span>`;
-    else statusHtml=`<span style="color:#c0392b">⚪ Last seen ${daysAgo}d ago (may have uninstalled — estimate only)</span>`;
-    return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:.78rem;gap:8px">
-      <span>${typeTag} ${label}</span>
-      <span style="text-align:right;flex-shrink:0">${statusHtml}</span>
+    const label=dev.name?`${dev.name}${dev.phone?' · '+dev.phone:''}`:'(unnamed visitor)';
+    const isRecent=dev.lastSeen&&(Date.now()-dev.lastSeen)<=14*86400000;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:.76rem;gap:8px">
+      <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${isRecent?'🟢':'⚪'} ${label}</span>
+      <span style="color:#888;flex-shrink:0;font-size:.7rem">${_relTime(dev.lastSeen)}</span>
     </div>`;
-  }).join('')||'<p style="font-size:.8rem;color:var(--muted)">No device activity recorded yet.</p>';
+  }).join('')||'<p style="font-size:.8rem;color:var(--muted)">No customer activity recorded yet.</p>';
+  const totalCustomers=deviceList.length;
+  const activeCount=deviceList.filter(d=>d.lastSeen&&(Date.now()-d.lastSeen)<=14*86400000).length;
   const installedCount=deviceList.filter(d=>d.installed).length;
-  const activeCount=deviceList.filter(d=>d.installed&&d.lastSeenStandalone&&(Date.now()-d.lastSeenStandalone)<=14*86400000).length;
   el.innerHTML=`
     <div style="display:flex;gap:10px;margin-bottom:.8rem;flex-wrap:wrap">
-      <div style="background:#e8f5e9;border-radius:10px;padding:8px 14px;flex:1;min-width:100px;text-align:center"><div style="font-size:1.3rem;font-weight:900;color:#2e7d32">${installedCount}</div><div style="font-size:.68rem;color:#2e7d32">Installed (ever)</div></div>
-      <div style="background:#e3f2fd;border-radius:10px;padding:8px 14px;flex:1;min-width:100px;text-align:center"><div style="font-size:1.3rem;font-weight:900;color:#1565c0">${activeCount}</div><div style="font-size:.68rem;color:#1565c0">Active last 14d</div></div>
+      <div style="background:#f3e5f5;border-radius:10px;padding:8px 14px;flex:1;min-width:90px;text-align:center"><div style="font-size:1.3rem;font-weight:900;color:#6a1b9a">${totalCustomers}</div><div style="font-size:.65rem;color:#6a1b9a">Total Customers</div></div>
+      <div style="background:#e3f2fd;border-radius:10px;padding:8px 14px;flex:1;min-width:90px;text-align:center"><div style="font-size:1.3rem;font-weight:900;color:#1565c0">${activeCount}</div><div style="font-size:.65rem;color:#1565c0">Active last 14d</div></div>
+      <div style="background:#e8f5e9;border-radius:10px;padding:8px 14px;flex:1;min-width:90px;text-align:center"><div style="font-size:1.3rem;font-weight:900;color:#2e7d32">${installedCount}</div><div style="font-size:.65rem;color:#2e7d32">App Installed</div></div>
     </div>
-    <p style="font-size:.7rem;color:var(--muted);margin-bottom:.6rem">📌 No website can detect a real uninstall — "may have uninstalled" is a best-effort estimate based on how long since that device last opened the installed app, not a confirmed fact.</p>
+    <p style="font-size:.68rem;color:var(--muted);margin-bottom:.6rem">📌 "Total Customers" and "Active" count everyone who has visited — browser or installed app alike. "App Installed" is the smaller group who specifically added it to their home screen.</p>
     <div style="font-weight:800;font-size:.82rem;margin-bottom:.3rem">🛵 Delivery Boy Logins</div>
     ${dboyRows}
-    <div style="font-weight:800;font-size:.82rem;margin:.8rem 0 .3rem">📲 Devices (installs &amp; activity)</div>
-    ${deviceRows}
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:.8rem 0 .3rem">
+      <div style="font-weight:800;font-size:.82rem">🧑 Customers (newest first)</div>
+      <span style="font-size:.68rem;color:var(--muted)">${deviceList.length}</span>
+    </div>
+    <div style="max-height:340px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:0 8px">${deviceRows}</div>
   `;
 }
 function renderRestaurantRegistry(){
@@ -5050,113 +5146,56 @@ function _lookupBuyTotal(name,qty,locationId){
   if(c&&c.buyPrice)return Math.round(c.buyPrice*qty);
   return 0;
 }
-// ══ MANUAL PRICE OVERRIDES ══════════════════════════════
-// For a specific (day, restaurant) where the admin knows the true amount
-// differs from what got computed — e.g. a buy price changed since that
-// order happened. Once set, this permanently wins over anything Fix Rs.0
-// or Recover Missing Orders would otherwise compute, and is never silently
-// touched by those tools again.
-function getRestOverrides(){return JSON.parse(localStorage.getItem(K.REST_OVERRIDES)||'{}');}
-function _overrideKey(day,restName){return day+'::'+restName;}
-function editRestaurantDayAmount(day,restName,curBuy,curSell,hasOverride){
-  const buyStr=prompt(`Correct amount YOU OWE "${restName}" for ${day}${hasOverride?' (clear this box to remove your correction)':''}:`,curBuy);
-  if(buyStr===null)return;
-  const overrides=getRestOverrides();
-  if(buyStr.trim()===''){
-    delete overrides[_overrideKey(day,restName)];
-    localStorage.setItem(K.REST_OVERRIDES,JSON.stringify(overrides));
-    renderDailyRestaurantSummary();
-    renderRestaurantMonthlySheets();
-    showNotif('Correction removed — back to automatic.');
-    return;
+// ══ SOLD-OUT REASSIGNMENT ═══════════════════════════════
+// When a restaurant is sold out of an item and the order actually got
+// fulfilled by a DIFFERENT restaurant instead, admin moves that one order
+// over here. Only the BUY side (what we owe) is recalculated, using the
+// new restaurant's current buy price for that item — the SELL side (what
+// the customer was charged) never changes, since that's money already
+// collected and has nothing to do with which kitchen made the food.
+function _findFoodByNameAndRestaurant(name,restaurantName,locationId){
+  const lname=(name||'').trim().toLowerCase();
+  const lrest=(restaurantName||'').trim().toLowerCase();
+  const matches=foods.filter(x=>x.name&&x.name.trim().toLowerCase()===lname&&x.restaurant&&x.restaurant.trim().toLowerCase()===lrest);
+  if(!matches.length)return null;
+  if(locationId){
+    const exact=matches.find(x=>x.locationId===locationId);
+    if(exact)return exact;
   }
-  const sellStr=prompt(`Correct amount YOU'LL CHARGE customers for "${restName}" on ${day}:`,curSell);
-  if(sellStr===null)return;
-  const buy=parseFloat(buyStr),sell=parseFloat(sellStr);
-  if(isNaN(buy)||isNaN(sell)){showNotif('❌ Enter valid numbers');return;}
-  overrides[_overrideKey(day,restName)]={buyTotal:buy,sellTotal:sell,setAt:Date.now()};
-  localStorage.setItem(K.REST_OVERRIDES,JSON.stringify(overrides));
-  renderDailyRestaurantSummary();
-  renderRestaurantMonthlySheets();
-  showNotif('✅ Locked in — this figure will never be auto-changed again.');
+  const shared=matches.find(x=>!x.locationId);
+  return shared||matches[0];
 }
-// One-off backfill: any logged item currently sitting at Rs.0 for BOTH sell
-// and buy gets corrected by going back to the ORIGINAL order record in
-// Supabase and re-reading the real amount the customer was actually charged
-// — never a guess, since that text is the actual transaction record and
-// never changes. The SELL/"You'll charge customers" figure this produces is
-// always exact. The BUY/"you owe" figure still has to use TODAY'S menu buy
-// price, because the buy price at the original order's time was genuinely
-// never recorded anywhere (that's the root bug this whole feature exists to
-// patch) — if you haven't changed that item's buy price since, it's exact;
-// if you have, only that specific old entry may be off and is worth a manual
-// check. Anything already priced is left completely untouched.
-// ══ ONE BUTTON: FIX EVERYTHING FROM REAL ORDERS ═════════════════════
-// Scans your real delivery history straight from Supabase and, in one pass:
-// creates any restaurant log entry that's missing entirely, AND corrects any
-// entry currently sitting at Rs.0 — using the EXACT amount from the original
-// order text (never a guess) for the sell/"charge customers" side, and
-// today's menu rate for the buy/"you owe" side (exact if that price hasn't
-// changed since; if it has, correct it by hand with ✏️ on that card).
-// Anything you've manually corrected, or that already has a real number, is
-// left completely untouched.
-async function fixAllRestaurantOrders(){
-  if(!confirm('Scan your last 90 days of delivered orders and fix anything missing or showing Rs.0, using the exact original order amounts? Entries you\'ve manually corrected, or that already have real numbers, are left untouched.'))return;
-  showNotif('🔍 Checking your order history...');
-  const orders=await sbGetOrdersRange(90);
-  const delivered=orders.filter(o=>o.status==='delivered'&&o.message);
+function reassignOrderRestaurant(day,oldRestName,orderId){
+  const options=getRestaurants().map(r=>r.name).filter(n=>n.trim().toLowerCase()!==oldRestName.trim().toLowerCase());
+  if(!options.length){showNotif('❌ Add another restaurant under Restaurants first');return;}
+  const choice=prompt('This order was actually fulfilled by which restaurant instead?\n\n'+options.map((n,i)=>(i+1)+'. '+n).join('\n')+'\n\nType the exact name:');
+  if(choice===null)return;
+  const newRestName=options.find(n=>n.trim().toLowerCase()===choice.trim().toLowerCase());
+  if(!newRestName){showNotif('❌ No exact match — check the spelling and try again');return;}
   const log=JSON.parse(localStorage.getItem(K.REST_ORDERS)||'{}');
-  const overrides=getRestOverrides();
-  // (restaurant + orderId) pairs that already have REAL, non-zero data —
-  // checked per restaurant-slice of an order, not the whole order, so a
-  // multi-restaurant order that's only partly logged still gets its
-  // missing restaurant recovered.
-  const goodLogged=new Set();
-  Object.values(log).forEach(dayObj=>{
-    Object.entries(dayObj).forEach(([restName,entries])=>{
-      entries.forEach(e=>{
-        const hasReal=(e.items||[]).some(i=>(i.sellTotal||0)>0||(i.buyTotal||0)>0);
-        if(e.orderId&&hasReal) goodLogged.add(restName+'::'+e.orderId);
-      });
-    });
+  const dayLog=log[day];
+  if(!dayLog||!dayLog[oldRestName]){showNotif('❌ Could not find that order');return;}
+  const idx=dayLog[oldRestName].findIndex(o=>o.orderId===orderId);
+  if(idx===-1){showNotif('❌ Could not find that order');return;}
+  const entry=dayLog[oldRestName][idx];
+  let anyUnmatched=false;
+  entry.items=entry.items.map(i=>{
+    const f=_findFoodByNameAndRestaurant(i.name,newRestName,entry.location_id);
+    if(f&&f.buyPrice)return {...i,buyTotal:Math.round(f.buyPrice*i.qty)};
+    anyUnmatched=true;
+    return {...i,buyTotal:0};
   });
-  let fixed=0,created=0;
-  const restPattern=/🏪 \*([^\n*]+)\*\n((?:• [^\n]+\n?)*)/g;
-  delivered.forEach(o=>{
-    const msg=o.message;
-    const dayKey=new Date(o.updated_at||o.created_at||Date.now()).toDateString();
-    let foundAnyBlock=false;
-    restPattern.lastIndex=0;
-    let m;
-    while((m=restPattern.exec(msg))!==null){
-      foundAnyBlock=true;
-      const restName=m[1].trim();
-      if(overrides[_overrideKey(dayKey,restName)])continue; // manually corrected — never auto-touch
-      if(goodLogged.has(restName+'::'+o.id))continue; // already has real data
-      const items=_priceOrderItems(m[2],o.location_id);
-      if(items.length){
-        const existed=log[dayKey]&&log[dayKey][restName]&&log[dayKey][restName].some(e=>e.orderId===o.id);
-        _logRestaurantOrderOnDay(dayKey,restName,items,o.id,o.location_id);
-        existed?fixed++:created++;
-      }
-    }
-    if(!foundAnyBlock){
-      const restName='TAMRO Kitchen';
-      if(!overrides[_overrideKey(dayKey,restName)]&&!goodLogged.has(restName+'::'+o.id)){
-        const items=_priceOrderItems(msg,o.location_id);
-        if(items.length){
-          const existed=log[dayKey]&&log[dayKey][restName]&&log[dayKey][restName].some(e=>e.orderId===o.id);
-          _logRestaurantOrderOnDay(dayKey,restName,items,o.id,o.location_id);
-          existed?fixed++:created++;
-        }
-      }
-    }
-  });
+  entry.reassignedFrom=oldRestName;
+  entry.reassignedAt=Date.now();
+  dayLog[oldRestName].splice(idx,1);
+  if(!dayLog[oldRestName].length)delete dayLog[oldRestName];
+  if(!dayLog[newRestName])dayLog[newRestName]=[];
+  dayLog[newRestName].push(entry);
+  localStorage.setItem(K.REST_ORDERS,JSON.stringify(log));
   syncLogsToGS();
   renderDailyRestaurantSummary();
   renderRestaurantMonthlySheets();
-  const total=fixed+created;
-  showNotif(total?`✅ Updated ${total} restaurant entr${total!==1?'ies':'y'} using exact original order amounts (${created} recovered, ${fixed} corrected).`:'Nothing to fix — everything already logged correctly.');
+  showNotif(anyUnmatched?`⚠️ Moved to ${newRestName} — but set a Buy Price for these items under that restaurant so the cost is accurate.`:`✅ Moved to ${newRestName} — cost recalculated, customer's price unchanged.`);
 }
 // Core writer — takes an explicit day key so historical backfills can log
 // an order under the day it actually happened, not "today". logRestaurantOrder
@@ -5239,14 +5278,15 @@ function renderDailyRestaurantSummary(){
         sellTotal+=i.sellTotal||0;
         buyTotal+=i.buyTotal||0;
       }));
-      const override=getRestOverrides()[_overrideKey(day,restName)];
-      const displayBuy=override?override.buyTotal:buyTotal;
-      const displaySell=override?override.sellTotal:sellTotal;
       const rows=Object.entries(agg).map(([name,qty],i)=>`<div class="rsum-row"><span style="color:var(--muted);font-size:.72rem">${i+1}.</span><span style="flex:1;margin-left:6px">${name}</span><span style="font-weight:800">×${qty}</span></div>`).join('');
       const totalItems=Object.values(agg).reduce((a,b)=>a+b,0);
-      const editBtn=`<button onclick="editRestaurantDayAmount('${day}','${restName.replace(/'/g,"\\'")}',${displayBuy},${displaySell},${!!override})" style="background:none;border:none;color:#1565c0;font-size:.68rem;font-weight:700;cursor:pointer;padding:0;margin-left:6px">✏️ ${override?'Edit':'Correct'}</button>`;
-      const overrideTag=override?`<span style="background:#fff3cd;color:#856404;border-radius:50px;padding:1px 8px;font-size:.62rem;font-weight:700;margin-left:6px">✋ Manually set</span>`:'';
-      const payLine=(displayBuy>0||override)?`<div class="rsum-row" style="border-top:1.5px solid var(--border);margin-top:.3rem;padding-top:.4rem"><span style="flex:1;font-weight:700;color:#1a1a2e">🧾 You owe this restaurant</span><span style="font-weight:900;color:#c0392b">Rs.${displayBuy}</span></div><div class="rsum-row"><span style="flex:1;color:var(--muted)">You'll charge customers</span><span style="font-weight:700">Rs.${displaySell}</span></div><div class="rsum-row">${editBtn}${overrideTag}</div>`:`<div class="rsum-row">${editBtn}</div>`;
+      const payLine=`<div class="rsum-row" style="border-top:1.5px solid var(--border);margin-top:.3rem;padding-top:.4rem"><span style="flex:1;font-weight:700;color:#1a1a2e">🧾 You owe this restaurant</span><span style="font-weight:900;color:#c0392b">Rs.${buyTotal}</span></div><div class="rsum-row"><span style="flex:1;color:var(--muted)">You'll charge customers</span><span style="font-weight:700">Rs.${sellTotal}</span></div>`;
+      const sendsList=orders.map(o=>{
+        const itemsStr=o.items.map(i=>i.name+' ×'+i.qty).join(', ');
+        const movedTag=o.reassignedFrom?`<span style="background:#e3f2fd;color:#1565c0;border-radius:50px;padding:1px 7px;font-size:.6rem;font-weight:700;margin-left:4px">↪ moved from ${o.reassignedFrom}</span>`:'';
+        return `<div class="rsum-row" style="font-size:.68rem;color:var(--muted)"><span style="flex:1">🕐 ${o.time} · ${itemsStr}${movedTag}</span><button onclick="reassignOrderRestaurant('${day}','${restName.replace(/'/g,"\\'")}','${o.orderId}')" style="background:none;border:none;color:#1565c0;font-size:.65rem;font-weight:700;cursor:pointer;padding:0;margin-left:6px;white-space:nowrap">🔄 Sold out — moved to another restaurant?</button></div>`;
+      }).join('');
+      const reassignBox=`<details style="margin-top:.3rem"><summary style="cursor:pointer;font-size:.68rem;color:#1565c0;font-weight:700">🔄 Reassign an order (${orders.length} sent)</summary>${sendsList}</details>`;
       return `<div class="rsum-card">
         <div class="rsum-head">
           <span class="rsum-name">🏪 ${restName}</span>
@@ -5254,6 +5294,7 @@ function renderDailyRestaurantSummary(){
         </div>
         ${rows}
         ${payLine}
+        ${reassignBox}
         <div class="rsum-total">Total items: ${totalItems} · Last sent: ${orders[orders.length-1].time}</div>
       </div>`;
     }).join('');
@@ -5310,6 +5351,7 @@ async function renderRestaurantMonthlySheets(){
   const log=JSON.parse(localStorage.getItem(K.REST_ORDERS)||'{}');
   const days=Object.keys(log);
   if(!days.length){el.innerHTML='<p style="font-size:.82rem;color:var(--muted)">No restaurant orders logged yet.</p>';return;}
+  try{
   // Group days by month
   const byMonth={};
   days.forEach(day=>{
@@ -5324,22 +5366,14 @@ async function renderRestaurantMonthlySheets(){
       const dayLog=log[day];
       Object.keys(dayLog).forEach(restName=>{
         if(!perRest[restName])perRest[restName]={sell:0,buy:0,qty:0,sends:0};
-        const override=getRestOverrides()[_overrideKey(day,restName)];
-        dayLog[restName].forEach(o=>{
+        (dayLog[restName]||[]).forEach(o=>{
           perRest[restName].sends++;
-          o.items.forEach(i=>{ perRest[restName].qty+=i.qty||0; });
-        });
-        if(override){
-          perRest[restName].sell+=override.sellTotal;
-          perRest[restName].buy+=override.buyTotal;
-        } else {
-          dayLog[restName].forEach(o=>{
-            o.items.forEach(i=>{
-              perRest[restName].sell+=i.sellTotal||0;
-              perRest[restName].buy+=i.buyTotal||0;
-            });
+          (o.items||[]).forEach(i=>{
+            perRest[restName].qty+=i.qty||0;
+            perRest[restName].sell+=i.sellTotal||0;
+            perRest[restName].buy+=i.buyTotal||0;
           });
-        }
+        });
       });
     });
     const names=Object.keys(perRest).sort((a,b)=>perRest[b].sell-perRest[a].sell);
@@ -5379,6 +5413,10 @@ async function renderRestaurantMonthlySheets(){
       </table>
     </div>`;
   }).join('');
+  }catch(e){
+    console.error('renderRestaurantMonthlySheets failed:',e);
+    el.innerHTML='<p style="font-size:.82rem;color:var(--muted)">⚠️ Could not build the monthly sheet — tap Refresh to try again.</p>';
+  }
 }
 
 async function deleteAuditMonth(monthKey){
@@ -5457,7 +5495,7 @@ function showQR(mode,btn){qrMode=mode;document.querySelectorAll('.qtab').forEach
 function renderQR(){
   const el=document.getElementById('qrcode');
   el.innerHTML='';
-  const url=qrMode==='admin'?BASE_URL:CUSTOMER_URL;
+  const url=qrMode==='admin'?(BASE_URL+'?key='+ADMIN_ACCESS_KEY):CUSTOMER_URL;
   document.getElementById('qurl').textContent=url;
   if(typeof QRCode==='undefined'){
     console.warn('QR library not loaded');
@@ -5526,12 +5564,13 @@ function showNotif(msg){const n=document.getElementById('notif');n.textContent=m
 // ══ DELIVERY TRACKING POPUP ═══════════════════════════
 let _deliveryPopupTimer = null;
 
-function showDeliveryPopup(type){
+function showDeliveryPopup(type,phone){
   const bg = document.getElementById('deliveryPopupBg');
   const icon = document.getElementById('dpIcon');
   const title = document.getElementById('dpTitle');
   const sub = document.getElementById('dpSub');
   const timer = document.getElementById('dpTimer');
+  const callBtn = document.getElementById('dpCallBtn');
   if(!bg) return;
   if(type === 'received'){
     icon.textContent = '✅';
@@ -5539,11 +5578,22 @@ function showDeliveryPopup(type){
     sub.textContent = 'Your order has been received by TAMRO. We\'re getting everything ready for you! 🍽';
     timer.style.display = 'inline-block';
     timer.textContent = '🛵 Delivery will be done as soon as possible';
+    if(callBtn)callBtn.style.display='none';
   } else if(type === 'inprocess'){
     icon.textContent = '🛵';
     title.textContent = 'Delivery in Process!';
     sub.textContent = 'Great news! Your order is on its way to you. Our delivery boy is heading to your location!';
     timer.style.display = 'none';
+    if(callBtn)callBtn.style.display='none';
+  } else if(type === 'dboyAssigned'){
+    icon.textContent = '🛵';
+    title.textContent = 'Delivery Partner Assigned!';
+    sub.textContent = phone?'Your order has been picked up and is on its way. Need to reach them directly?':'Your order has been picked up and is on its way!';
+    timer.style.display = 'none';
+    if(callBtn){
+      if(phone){callBtn.href='tel:'+phone;callBtn.textContent='📞 Call '+phone;callBtn.style.display='inline-block';}
+      else callBtn.style.display='none';
+    }
   }
   bg.classList.add('on');
 }
@@ -5562,6 +5612,44 @@ function triggerOrderTracking(){
   }, 30 * 60 * 1000);
   // Open the live order tracker after 3 seconds (enough time to read the popup)
   setTimeout(()=>{ closeDeliveryPopup(); openLOT(); }, 3000);
+}
+
+// ══ DBOY ASSIGNMENT WATCH ═══════════════════════════════
+// Polls in the background (customer side only, independent of whether the
+// tracker panel is open) until a delivery boy accepts this order, then pops
+// up a notification with their PHONE NUMBER ONLY — never their name — so
+// the customer can reach them directly. Stops once assigned, delivered,
+// cancelled, or after 2 hours.
+let _dboyWatchTimer=null;
+function startDboyAssignWatcher(orderId){
+  if(IS_ADMIN||IS_DBOY||!orderId)return;
+  if(_dboyWatchTimer){clearInterval(_dboyWatchTimer);_dboyWatchTimer=null;}
+  const startedAt=Date.now();
+  const check=async()=>{
+    if(Date.now()-startedAt>2*60*60*1000){clearInterval(_dboyWatchTimer);_dboyWatchTimer=null;return;}
+    try{
+      const order=await sbGetOrderById(orderId);
+      if(!order)return;
+      if(order.status==='cancelled'||order.status==='delivered'){clearInterval(_dboyWatchTimer);_dboyWatchTimer=null;return;}
+      if(order.accepted_by&&order.accepted_by.trim()){
+        clearInterval(_dboyWatchTimer);_dboyWatchTimer=null;
+        notifyDboyAssigned(order.accepted_by_phone||'');
+      }
+    }catch(e){console.log('dboy watch err:',e);}
+  };
+  check();
+  _dboyWatchTimer=setInterval(check,20000);
+}
+function notifyDboyAssigned(phone){
+  showDeliveryPopup('dboyAssigned',phone);
+  if('Notification' in window && Notification.permission==='granted'){
+    try{
+      new Notification('🛵 Delivery partner assigned!',{
+        body:phone?('Contact: '+phone):'Your order is on its way.',
+        icon:'https://ui-avatars.com/api/?name=TAMRO&background=E84545&color=fff&size=192'
+      });
+    }catch(e){}
+  }
 }
 
 // ══ LIVE ORDER TRACKER (LOT) ══════════════════════════
@@ -5631,7 +5719,12 @@ async function refreshLOT(){
     }
   }catch(e){console.log('LOT fetch err',e);}
   if(spin)spin.style.display='none';
-  renderLOT(order);
+  try{ renderLOT(order); }
+  catch(e){
+    console.error('refreshLOT: render failed:',e);
+    const stepsEl=document.getElementById('lotSteps');
+    if(stepsEl)stepsEl.innerHTML='<div class="lot-step" style="opacity:.85"><div class="lot-icon">⚠️</div><div class="lot-info"><div class="lot-label">Could not load status</div><div class="lot-desc">Tap Refresh to try again.</div></div></div>';
+  }
 }
 
 function renderLOT(order){
@@ -5670,23 +5763,25 @@ function renderLOT(order){
     const ageMs=order&&order.created_at?(Date.now()-new Date(order.created_at).getTime()):Infinity;
     cancelBtn.style.display=(order&&status==='new'&&ageMs<2*60*1000)?'block':'none';
   }
-  // Show delivery boy card if picked/delivered
+  // Show delivery partner card as soon as one is assigned — phone number
+  // only, name is never shown to the customer.
   const dbCard=document.getElementById('lotDboyCard');
   if(dbCard){
-    const dboyName=order&&(order.accepted_by||order.dboy_name);
-    if(order&&(order.status==='picked'||order.status==='delivered')&&dboyName){
-      document.getElementById('lotDboyAv').textContent=(dboyName[0]||'D').toUpperCase();
-      document.getElementById('lotDboyName').textContent='🛵 '+dboyName;
-      document.getElementById('lotDboyStatus').textContent=order.status==='delivered'?'✅ Delivered your order!':'Out for delivery to you!';
+    const assigned=order&&order.accepted_by&&order.accepted_by.trim();
+    if(assigned&&order.status!=='new'&&order.status!=='cancelled'){
+      const phone=order.accepted_by_phone||'';
+      document.getElementById('lotDboyAv').textContent='🛵';
+      document.getElementById('lotDboyName').textContent=phone?('📞 '+phone):'🛵 Delivery partner assigned';
+      document.getElementById('lotDboyStatus').textContent=order.status==='delivered'?'✅ Delivered your order!':(order.status==='picked'?'Out for delivery to you!':'Preparing your order for pickup');
       dbCard.style.display='flex';
     }else{dbCard.style.display='none';}
   }
   // Update order id label if we got an order
-  if(order&&!_lotCurrentOrderId){
+  if(order&&!_lotCurrentOrderId&&order.id){
     _lotCurrentOrderId=order.id;
     localStorage.setItem('tamro_last_order_id',order.id);
     const oid=document.getElementById('lotOrderId');
-    if(oid)oid.innerHTML=`<span class="lot-orderid">Order #${order.id.slice(-8).toUpperCase()}</span>`;
+    if(oid)oid.innerHTML=`<span class="lot-orderid">Order #${String(order.id).slice(-8).toUpperCase()}</span>`;
   }
 }
 
@@ -5720,6 +5815,13 @@ async function _checkAppVersion(){
     const cartIsOpen=document.getElementById('cpanel')&&document.getElementById('cpanel').classList.contains('open');
     const cartHasItems=Object.keys(cart).length>0||(typeof customItems!=='undefined'&&customItems.length>0);
     if(cartIsOpen||cartHasItems)return;
+    // Also don't reload while they're on Orders/Packages/Contact/Share —
+    // a reload always lands back on the Menu tab, which would silently
+    // yank them off whatever they were looking at. Only reload while
+    // they're already sitting on Menu; the next 20s check catches the
+    // update once they return there on their own.
+    const onMenuView=document.getElementById('view-menu')&&document.getElementById('view-menu').classList.contains('on');
+    if(!onMenuView)return;
   }
   try{
     const url=window.location.href.split('?')[0].split('#')[0];
@@ -5748,25 +5850,19 @@ const APP_SESSION_START = Date.now();
 // appear immediately when customer opens or returns to the app,
 // even if the updatedAt hasn't changed since their last visit.
 let _lastKnownUpdate = 0;
+// NOTE: this used to force a full page reload whenever admin changed
+// anything, which — because a reload always lands back on the Menu tab —
+// was silently bouncing customers off the Orders/Packages/Contact/Share
+// tabs mid-browse. It's no longer needed for that: fetchGS() already
+// applies every data change (menu, prices, discounts, banners, hours,
+// promos...) live in the background on every 20s poll, reload or not.
+// This just records the timestamp so other checks (like _checkAppVersion)
+// can reason about staleness — it never navigates or reloads anything.
 function checkAutoRefresh(serverUpdatedAt){
   if(!serverUpdatedAt) return;
   if(serverUpdatedAt > _lastKnownUpdate){
-    const wasAlreadyLoaded=_lastKnownUpdate>0;
     _lastKnownUpdate = serverUpdatedAt;
     localStorage.setItem('tamro_last_update', String(serverUpdatedAt));
-    if(IS_CUSTOMER && wasAlreadyLoaded){
-      // Admin changed something since this customer last loaded the app.
-      // If they are actively using it (cart open, typing) — don't interrupt.
-      // If they just re-opened it or it's idle — reload to get latest.
-      const cartIsOpen=document.getElementById('cpanel')&&document.getElementById('cpanel').classList.contains('open');
-      const cartHasItems=Object.keys(cart).length>0||customItems.length>0;
-      if(!cartIsOpen && !cartHasItems){
-        showNotif('🔄 Menu updated! Refreshing…');
-        setTimeout(()=>{ window.location.reload(); }, 2500);
-      }
-      // If cart is open/has items: fetchGS already updated the data in the
-      // background silently — customer sees correct data without disruptive reload
-    }
   }
 }
 
@@ -6674,12 +6770,21 @@ async function dbUpdateStatus(id,status,paymentMethod){
   const dboyName=(status==='confirmed'||status==='accepted'||status==='picked'||status==='delivered')?dbLoggedInName:null;
   const extra={};
   if(status==='delivered'&&paymentMethod) extra.payment_received=paymentMethod;
+  // Snapshot this delivery boy's phone onto the order too — the customer-
+  // facing tracker shows ONLY the phone number (never the name), so it
+  // needs its own field rather than looking the name up later.
+  let dboyPhone=null;
+  if(dboyName){
+    const myDboy=getDboys().find(b=>b.name.toLowerCase()===dboyName.toLowerCase());
+    if(myDboy&&myDboy.phone){dboyPhone=myDboy.phone;extra.accepted_by_phone=myDboy.phone;}
+  }
   await sbUpdateOrderStatus(id,status,dboyName,Object.keys(extra).length?extra:undefined);
   const o=dbOrdersCache.find(x=>x.id===id);
   if(o){
     o.status=status;
     o.updated_at=new Date().toISOString();
     if(dboyName) o.accepted_by=dboyName;
+    if(dboyPhone) o.accepted_by_phone=dboyPhone;
     if(status==='delivered'&&paymentMethod) o.payment_received=paymentMethod;
   }
   // Auto-log restaurant orders to daily summary when marked delivered.
