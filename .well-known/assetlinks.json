@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "np.com.tamro.app",
+      "sha256_cert_fingerprints": [
+        "A5:2C:40:F0:EE:8A:95:86:AF:61:20:6D:D5:25:6F:04:E8:07:E6:FB:B8:49:12:FA:80:2B:3F:FD:7F:4A:F1:A0"
+      ]
+    }
+  }
+]
