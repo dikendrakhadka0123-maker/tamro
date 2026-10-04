@@ -730,6 +730,11 @@ button:active,.nbtn:active,.obtn:active,.locbtn:active,.ob-locbtn:active,.qbtn:a
 .dbNewOrderPop-title{font-family:'Playfair Display',serif;font-weight:900;font-size:1.3rem;color:#1a1a2e;margin:.6rem 0 .2rem;}
 .dbNewOrderPop-sub{font-size:.85rem;color:var(--muted);margin-bottom:1.2rem;}
 .dbNewOrderPop-btn{background:linear-gradient(135deg,var(--p),var(--a));color:#fff;border:none;border-radius:50px;padding:.8rem 1.5rem;font-size:.9rem;font-weight:800;width:100%;cursor:pointer;}
+
+/* ══ Native-app feel (Android) — scoped, additive ══ */
+button,.btabs,.btab{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;}
+@media (display-mode: standalone){html{overscroll-behavior-y:contain;}}
+.btabs{padding-bottom:env(safe-area-inset-bottom,0px);}
 </style>
 </head>
 <body>
@@ -6398,7 +6403,7 @@ async function cancelMyOrder(){
 // version of the file has been deployed to GitHub, every customer's
 // browser (Chrome, Safari, home screen icon) will detect it and
 // reload automatically — no cache clearing, no reinstalling, ever.
-const APP_VERSION='2026-06-28-2';
+const APP_VERSION='2026-10-04-2';
 async function _checkAppVersion(){
   // Never auto-reload admin — they may be mid-edit on menu, banner, or
   // any form, and an unexpected reload would silently discard their work.
@@ -6759,6 +6764,7 @@ function mgrToggleDboy(id){toggleDboy(id);mgrRenderDboys();}
 function mgrUpdatePushBannerUI(){
   const banner=document.getElementById('mgrPushBanner');
   if(!banner)return;
+  if(window.Capacitor){banner.style.display='none';return;}
   if(!('Notification' in window)){banner.style.display='none';return;}
   if(Notification.permission==='granted'&&localStorage.getItem('tamro_mgr_push_sub_'+mgrLoggedInName)==='1'){
     banner.style.display='none';
@@ -7029,6 +7035,7 @@ function dbCheckLocationPermission(){
 }
 
 function dbPushLocation(){
+  if(window._tamroNativeLocation)return; // native background tracking is handling it
   if(!navigator.geolocation||!dbLoggedInName)return;
   navigator.geolocation.getCurrentPosition(async function(p){
     dbShowLocationBanner(false);
@@ -7160,6 +7167,7 @@ function _urlBase64ToUint8Array(base64String){
 
 async function dbInitPush(){
   if(!IS_DBOY)return;
+  if(window.Capacitor)return; // native FCM handles alerts in the Android app
   if(!('serviceWorker' in navigator)||!('PushManager' in window)){
     console.log('Push notifications not supported on this browser');
     return;
@@ -7215,6 +7223,7 @@ function _dbIsIOS(){
 function dbMaybeShowPushModal(){
   const modal=document.getElementById('dbPushModal');
   if(!modal||!dbLoggedInName)return;
+  if(window.Capacitor)return;
   if(!('Notification' in window)||!('serviceWorker' in navigator))return;
   if(Notification.permission==='granted'&&localStorage.getItem('tamro_push_sub_'+dbLoggedInName)==='1')return;
   if(Notification.permission==='denied')return;
@@ -7298,6 +7307,7 @@ function dbDismissBatteryModal(done){
 function dbUpdatePushBannerUI(){
   const banner=document.getElementById('dbPushBanner');
   if(!banner||!dbLoggedInName)return;
+  if(window.Capacitor){banner.style.display='none';return;}
   if(!('Notification' in window)||!('serviceWorker' in navigator)){banner.style.display='none';return;}
   if(Notification.permission==='granted'&&localStorage.getItem('tamro_push_sub_'+dbLoggedInName)==='1'){
     banner.style.display='none';
@@ -8275,6 +8285,64 @@ function obSave(){
   document.body.style.width = '';
   showNotif('✅ Details saved! Welcome to TAMRO 🎉');
 }
+
+// ══ ANDROID BACK BUTTON ══
+// Only runs inside an installed Android app (WebAPK / Play Store app / Capacitor), never in a normal browser tab.
+// The customer app is OFF until you flip the switch below (test it on a phone first).
+(function setupBackButton(){
+  const ENABLE_FOR_CUSTOMER=false;
+  try{
+    const isAndroid=/Android/i.test(navigator.userAgent);
+    const inApp=(typeof _isStandalone==='function'&&_isStandalone())||!!window.Capacitor||document.referrer.indexOf('android-app://')===0;
+    if(!isAndroid||!inApp||!window.history||!history.pushState)return;
+    if(IS_CUSTOMER&&!ENABLE_FOR_CUSTOMER)return;
+    const $=id=>document.getElementById(id);
+    const hasCls=(id,c)=>{const e=$(id);return !!(e&&e.classList.contains(c));};
+    const shown=id=>{const e=$(id);return !!e&&e.style.display!==''&&e.style.display!=='none';};
+    const layers=[ // topmost first: how to tell it is open + how to close it
+      {open:()=>!!$('dbNewOrderPop'),             close:()=>dbDismissNewOrderPopup()},
+      {open:()=>!!$('dbPayConfirmPop'),           close:()=>$('dbPayConfirmPop').remove()},
+      {open:()=>shown('dbLogoutConfirm'),         close:()=>{$('dbLogoutConfirm').style.display='none';}},
+      {open:()=>shown('mgrLogoutConfirm'),        close:()=>{$('mgrLogoutConfirm').style.display='none';}},
+      {open:()=>shown('dbBatteryModal'),          close:()=>dbDismissBatteryModal(false)},
+      {open:()=>shown('dbPushModal'),             close:()=>{$('dbPushModal').style.display='none';}},
+      {open:()=>!!$('dbCopyFallback'),            close:()=>$('dbCopyFallback').remove()},
+      {open:()=>shown('fbCopyModal'),             close:()=>{$('fbCopyModal').style.display='none';}},
+      {open:()=>hasCls('deliveryPopupBg','on'),   close:()=>closeDeliveryPopup()},
+      {open:()=>hasCls('paymentModal','on'),      close:()=>$('paymentModal').classList.remove('on')},
+      {open:()=>hasCls('lotBg','on'),             close:()=>closeLOT()},
+      {open:()=>hasCls('aiPanel','on'),           close:()=>$('aiPanel').classList.remove('on')},
+      {open:()=>hasCls('otpbg','on'),             close:()=>closeOTP()},
+      {open:()=>hasCls('installStepsPanel','open'),close:()=>closeInstallSteps()},
+      {open:()=>hasCls('comboBuilderPanel','open'),close:()=>closeComboBuilder()},
+      {open:()=>hasCls('cpanel','open'),          close:()=>closeCart()},
+      {open:()=>hasCls('onboardBg','on'),         close:()=>showNotif('Please fill in your details to continue')} // mandatory form
+    ];
+    function currentView(){const v=document.querySelector('.view.on');return v?v.id.replace('view-',''):null;}
+    function handleBack(){
+      for(const L of layers){ try{ if(L.open()){L.close();return true;} }catch(e){} }
+      if(!IS_DBOY&&!IS_MANAGER){
+        const cv=currentView();
+        if(cv&&cv!=='menu'){showView('menu');return true;}
+      }
+      return false;
+    }
+    const isTop=()=>!!(history.state&&history.state.tamro==='top');
+    const pushTop=()=>{ try{history.pushState({tamro:'top'},'');}catch(e){} };
+    if(!isTop()){ history.replaceState({tamro:'base'},''); pushTop(); }   // reload-safe: never stacks extra entries
+    let armTimer=null;
+    window.addEventListener('popstate',function(){
+      try{
+        if(handleBack()){pushTop();return;}
+        // Nothing left to close. Warn once and stay on the base entry, so a 2nd Back press exits the app natively.
+        showNotif('Press back again to exit');
+        clearTimeout(armTimer);
+        armTimer=setTimeout(function(){ if(!isTop())pushTop(); },2000); // re-arm if they stayed
+      }catch(e){ console.log('back handler error',e); }
+    });
+  }catch(e){ console.log('back button setup skipped',e); }
+})();
 </script>
+<script src="native-bridge.js"></script>
 </body>
 </html>

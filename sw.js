@@ -1,3 +1,5 @@
+try{ importScripts('./sw-shell.js'); }catch(e){} // offline cache (optional; push keeps working even if this file is missing)
+
 // TAMRO Delivery — Service Worker
 // Handles Web Push events for two audiences:
 //  1) Delivery boys — real-time new-order alerts (sound + vibration + banner)
